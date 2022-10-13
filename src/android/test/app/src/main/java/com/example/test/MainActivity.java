@@ -89,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         employeeInfo.setEmployeeName(name);
         employeeInfo.setEmployeeContactNumber(phone);
         employeeInfo.setEmployeeAddress(address);
+        databaseReference.setValue(employeeInfo);
+        Toast.makeText(MainActivity.this, "added data outside event listener", Toast.LENGTH_SHORT).show();
 
         // we are use add value event listener method
         // which is called with database reference.
