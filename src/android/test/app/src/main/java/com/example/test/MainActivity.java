@@ -2,6 +2,7 @@ package com.example.test;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,6 +11,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -18,10 +21,16 @@ import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
+    // TOTA LA INFORMACIÓ ES POT TROBAR AQUÍ
+    // https://firebase.google.com/docs/database/android/read-and-write
+    // https://www.geeksforgeeks.org/how-to-save-data-to-the-firebase-realtime-database-in-android/
+
+
     // creating variables for
     // EditText and buttons.
     private EditText employeeNameEdt, employeePhoneEdt, employeeAddressEdt;
-    private Button sendDatabtn;
+    private Button sendDatabtn, fetchDatabtn;
+
 
     // creating a variable for our
     // Firebase Database.
@@ -57,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         employeeInfo = new EmployeeInfo();
 
         sendDatabtn = findViewById(R.id.idBtnSendData);
+        fetchDatabtn = findViewById(R.id.idBtnReceiveData);
 
         // adding on click listener for our button.
         sendDatabtn.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +91,32 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        fetchDatabtn.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                fetchDataFirebase();
+            }
+        });
+    }
+
+    private void fetchDataFirebase(){
+        databaseReference.child("usuaris").child("a").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                    EmployeeInfo em = new EmployeeInfo();
+                    // TODO aconseguir fer el prase i guardar-lo
+
+                    Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     private void addDatatoFirebase(String name, String phone, String address) {
@@ -89,8 +125,8 @@ public class MainActivity extends AppCompatActivity {
         employeeInfo.setEmployeeName(name);
         employeeInfo.setEmployeeContactNumber(phone);
         employeeInfo.setEmployeeAddress(address);
-        databaseReference.setValue(employeeInfo);
-        Toast.makeText(MainActivity.this, "added data outside event listener", Toast.LENGTH_SHORT).show();
+//        databaseReference.setValue(employeeInfo);
+//        Toast.makeText(MainActivity.this, "added data outside event listener", Toast.LENGTH_SHORT).show();
 
         // we are use add value event listener method
         // which is called with database reference.
@@ -100,7 +136,9 @@ public class MainActivity extends AppCompatActivity {
                 // inside the method of on Data change we are setting
                 // our object class to our database reference.
                 // data base reference will sends data to firebase.
-                databaseReference.setValue(employeeInfo);
+//                databaseReference.setValue(employeeInfo);
+                databaseReference.child("usuaris").child(employeeInfo.getEmployeeName()).setValue(employeeInfo);
+                //databaseReference.setValue(employeeInfo);
 
                 // after adding this data we are showing toast message.
                 Toast.makeText(MainActivity.this, "data added", Toast.LENGTH_SHORT).show();
