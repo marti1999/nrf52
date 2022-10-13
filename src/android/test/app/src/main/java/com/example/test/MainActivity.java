@@ -1,76 +1,115 @@
 package com.example.test;
 
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
-import com.google.android.material.snackbar.Snackbar;
-
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.view.View;
-
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
-import com.example.test.databinding.ActivityMainBinding;
-
-import android.view.Menu;
-import android.view.MenuItem;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
+    // creating variables for
+    // EditText and buttons.
+    private EditText employeeNameEdt, employeePhoneEdt, employeeAddressEdt;
+    private Button sendDatabtn;
+
+    // creating a variable for our
+    // Firebase Database.
+    FirebaseDatabase firebaseDatabase;
+
+    // creating a variable for our Database
+    // Reference for Firebase.
+    DatabaseReference databaseReference;
+
+    // creating a variable for
+    // our object class
+    EmployeeInfo employeeInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        // initializing our edittext and button
+        employeeNameEdt = findViewById(R.id.idEdtEmployeeName);
+        employeePhoneEdt = findViewById(R.id.idEdtEmployeePhoneNumber);
+        employeeAddressEdt = findViewById(R.id.idEdtEmployeeAddress);
 
-        setSupportActionBar(binding.toolbar);
+        // below line is used to get the
+        // instance of our FIrebase database.
+        firebaseDatabase = FirebaseDatabase.getInstance();
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        // below line is used to get reference for our database.
+        databaseReference = firebaseDatabase.getReference("EmployeeInfo");
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
+        // initializing our object
+        // class variable.
+        employeeInfo = new EmployeeInfo();
+
+        sendDatabtn = findViewById(R.id.idBtnSendData);
+
+        // adding on click listener for our button.
+        sendDatabtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onClick(View v) {
+
+                // getting text from our edittext fields.
+                String name = employeeNameEdt.getText().toString();
+                String phone = employeePhoneEdt.getText().toString();
+                String address = employeeAddressEdt.getText().toString();
+
+                // below line is for checking whether the
+                // edittext fields are empty or not.
+                if (TextUtils.isEmpty(name) && TextUtils.isEmpty(phone) && TextUtils.isEmpty(address)) {
+                    // if the text fields are empty
+                    // then show the below message.
+                    Toast.makeText(MainActivity.this, "Please add some data.", Toast.LENGTH_SHORT).show();
+                } else {
+                    // else call the method to add
+                    // data to our database.
+                    addDatatoFirebase(name, phone, address);
+                }
             }
         });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+    private void addDatatoFirebase(String name, String phone, String address) {
+        // below 3 lines of code is used to set
+        // data in our object class.
+        employeeInfo.setEmployeeName(name);
+        employeeInfo.setEmployeeContactNumber(phone);
+        employeeInfo.setEmployeeAddress(address);
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        // we are use add value event listener method
+        // which is called with database reference.
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // inside the method of on Data change we are setting
+                // our object class to our database reference.
+                // data base reference will sends data to firebase.
+                databaseReference.setValue(employeeInfo);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+                // after adding this data we are showing toast message.
+                Toast.makeText(MainActivity.this, "data added", Toast.LENGTH_SHORT).show();
+            }
 
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // if the data is not added or it is cancelled then
+                // we are displaying a failure toast message.
+                Toast.makeText(MainActivity.this, "Fail to add data " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

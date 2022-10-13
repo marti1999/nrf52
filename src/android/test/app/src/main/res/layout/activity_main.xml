@@ -1,34 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <!--EditText for adding employee name-->
+    <EditText
+        android:id="@+id/idEdtEmployeeName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.Test.AppBarOverlay">
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:hint="Enter Employee Name"
+        android:importantForAutofill="no"
+        android:inputType="textPersonName" />
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.Test.PopupOverlay" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <include layout="@layout/content_main" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
+    <!--EditText for adding employee phone-->
+    <EditText
+        android:id="@+id/idEdtEmployeePhoneNumber"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="16dp"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        android:layout_below="@id/idEdtEmployeeName"
+        android:layout_margin="10dp"
+        android:hint="Enter employee phone number"
+        android:importantForAutofill="no"
+        android:inputType="phone" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <!--EditText for adding employee address-->
+    <EditText
+        android:id="@+id/idEdtEmployeeAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/idEdtEmployeePhoneNumber"
+        android:layout_margin="10dp"
+        android:hint="Enter employee address"
+        android:inputType="textPostalAddress" />
+
+    <!--Button for adding data to Firebase-->
+    <Button
+        android:id="@+id/idBtnSendData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/idEdtEmployeeAddress"
+        android:layout_margin="10dp"
+        android:text="Add employee details"
+        android:textAllCaps="false" />
+
+</RelativeLayout>
