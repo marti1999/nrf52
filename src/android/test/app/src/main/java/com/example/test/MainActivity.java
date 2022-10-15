@@ -18,6 +18,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     // TOTA LA INFORMACIÓ ES POT TROBAR AQUÍ
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     // our object class
     Entry entry;
     String lastKey = "";
+    ArrayList<Entry> allEntries = new ArrayList<Entry>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,13 +99,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnFetchAll.setOnClickListener(new View.OnClickListener(){
 
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "Not implemented yet", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         btnSendBulk.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -119,11 +116,19 @@ public class MainActivity extends AppCompatActivity {
                 fetchLastEntry();
             }
         });
+
+        btnFetchAll.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, "Not implemented yet", Toast.LENGTH_SHORT).show();
+                fetchAllEntries();
+            }
+        });
     }
 
-    private void fetchLastEntry(){
 
-        /*
+    private void fetchAllEntries(){
         databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -131,16 +136,24 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("firebase", "Error getting data", task.getException());
                 }
                 else {
-                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
-                    Entry em = new Entry();
-                    // TODO aconseguir fer el prase i guardar-lo
 
-                    Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
+                    //https://stackoverflow.com/questions/32886546/how-to-extract-a-list-of-objects-from-firebase-datasnapshot-on-android
+                    // la segona solució explica com guardar-ho en un map/diccionari
+
+                    allEntries.clear();
+
+                    for (DataSnapshot entrySnap : task.getResult().getChildren()){
+                        Entry en = entrySnap.getValue(Entry.class);
+                        allEntries.add(en);
+                    }
+                    multiLineResults.setText(String.valueOf(allEntries));
                 }
+
             }
         });
+    }
 
-         */
+    private void fetchLastEntry(){
 
         databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
@@ -149,11 +162,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("firebase", "Error getting data", task.getException());
                 }
                 else {
-                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
                     Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
                     Entry en = task.getResult().getValue(Entry.class);
                     multiLineResults.setText(String.valueOf(en));
-
                 }
             }
         });
