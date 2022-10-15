@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     // creating variables for
     // EditText and buttons.
     private EditText textTemp, textHumidity, textPrec, multiLineResults;
-    private Button btnSendEntry, btnSendBulk, btnFetchLast, btnFetchAll;
+    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll;
 
 
     // creating a variable for our
@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         btnSendBulk = findViewById(R.id.idButtonBulk);
         btnFetchLast = findViewById(R.id.idButtonFetchLast);
         btnFetchAll = findViewById(R.id.idButtonFetchAll);
+        btnCleanAllEntries = findViewById(R.id.idButtonClearAll);
 
         // adding on click listener for our button.
         btnSendEntry.setOnClickListener(new View.OnClickListener() {
@@ -94,22 +95,28 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     // else call the method to add
                     // data to our database.
-                    addDatatoFirebase(name, phone, address);
+                    addEntryToFirebase(name, phone, address);
                 }
             }
         });
 
 
-
-        btnSendBulk.setOnClickListener(new View.OnClickListener(){
+        btnSendBulk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Toast.makeText(MainActivity.this, "Not implemented yet", Toast.LENGTH_SHORT).show();
             }
         });
+        btnCleanAllEntries.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                clearAllEntries();
+            }
+        });
 
 
-        btnFetchLast.setOnClickListener(new View.OnClickListener(){
+        btnFetchLast.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
@@ -117,32 +124,32 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnFetchAll.setOnClickListener(new View.OnClickListener(){
+        btnFetchAll.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "Not implemented yet", Toast.LENGTH_SHORT).show();
                 fetchAllEntries();
             }
         });
     }
 
 
-    private void fetchAllEntries(){
+    private void fetchAllEntries() {
         databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (!task.isSuccessful()) {
                     Log.e("firebase", "Error getting data", task.getException());
-                }
-                else {
+                } else {
 
                     //https://stackoverflow.com/questions/32886546/how-to-extract-a-list-of-objects-from-firebase-datasnapshot-on-android
                     // la segona solució explica com guardar-ho en un map/diccionari
+                    // https://medium.com/firebase-developers/how-to-map-an-array-of-objects-from-realtime-database-to-a-list-of-objects-53f27b33c8f3
+                    // i aquest últim link explica en sí com funciona els snapshots i mapejar dades de format firebase al que volguem
 
                     allEntries.clear();
 
-                    for (DataSnapshot entrySnap : task.getResult().getChildren()){
+                    for (DataSnapshot entrySnap : task.getResult().getChildren()) {
                         Entry en = entrySnap.getValue(Entry.class);
                         allEntries.add(en);
                     }
@@ -153,15 +160,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void fetchLastEntry(){
+    private void fetchLastEntry() {
 
         databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (!task.isSuccessful()) {
                     Log.e("firebase", "Error getting data", task.getException());
-                }
-                else {
+                } else {
                     Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
                     Entry en = task.getResult().getValue(Entry.class);
                     multiLineResults.setText(String.valueOf(en));
@@ -183,7 +189,17 @@ public class MainActivity extends AppCompatActivity {
         });*/
     }
 
-    private void addDatatoFirebase(String temperature, String humidity, String precipitation) {
+    private void clearAllEntries() {
+        databaseReference.removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Toast.makeText(MainActivity.this, "All entries cleared", Toast.LENGTH_SHORT).show();
+            }
+
+        });
+    }
+
+    private void addEntryToFirebase(String temperature, String humidity, String precipitation) {
         // below 3 lines of code is used to set
         // data in our object class.
         entry.setTemperature(temperature);
@@ -197,8 +213,8 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(Void unused) {
 
                 clearTextBoxes();
-                lastKey= pushedRef.getKey();
-                Toast.makeText(MainActivity.this, "key "+lastKey, Toast.LENGTH_LONG).show();
+                lastKey = pushedRef.getKey();
+                Toast.makeText(MainActivity.this, "key " + lastKey, Toast.LENGTH_LONG).show();
 
             }
         });
@@ -211,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Data sent", Toast.LENGTH_LONG).show();
             }
         });*/
-
 
 
         // AIXO ÉS PER FER-HO DE MANERA ASYNC, REALMENT NO CAL TOCAR-HO I MENYS LIOS
@@ -244,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
          */
     }
 
-    private void clearTextBoxes(){
+    private void clearTextBoxes() {
         textTemp.getText().clear();
         textPrec.getText().clear();
         textHumidity.getText().clear();
