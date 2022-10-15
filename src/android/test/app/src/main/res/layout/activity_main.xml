@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,60 +9,106 @@
 
     <!--EditText for adding employee name-->
     <EditText
-        android:id="@+id/idEdtEmployeeName"
+        android:id="@+id/idTextTemperature"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_margin="10dp"
-        android:hint="Enter Employee Name"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:hint="Temperature"
         android:importantForAutofill="no"
         android:inputType="textPersonName" />
 
     <!--EditText for adding employee phone-->
     <EditText
-        android:id="@+id/idEdtEmployeePhoneNumber"
+        android:id="@+id/idTextHumidity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/idEdtEmployeeName"
-        android:layout_margin="10dp"
-        android:hint="Enter employee phone number"
+        android:layout_below="@id/idTextTemperature"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:hint="Humidity"
         android:importantForAutofill="no"
         android:inputType="phone" />
 
     <!--EditText for adding employee address-->
     <EditText
-        android:id="@+id/idEdtEmployeeAddress"
+        android:id="@+id/idTextPrecipitation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/idEdtEmployeePhoneNumber"
+        android:layout_below="@id/idTextHumidity"
         android:layout_margin="10dp"
-        android:hint="Enter employee address"
+        android:hint="Precipitation"
         android:inputType="textPostalAddress" />
 
     <!--Button for adding data to Firebase-->
     <Button
-        android:id="@+id/idBtnSendData"
+        android:id="@+id/idButtonManually"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/idEdtEmployeeAddress"
+        android:layout_below="@id/idTextPrecipitation"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        android:text="Add employee details"
+        android:text="Add manually"
         android:textAllCaps="false" />
-
     <Button
-        android:id="@+id/idBtnReceiveData"
+        android:id="@+id/idButtonBulk"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/idEdtEmployeeAddress"
+        android:layout_below="@id/idButtonManually"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="96dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        android:text="Fetch data"
+        android:text="Add bulk (10 random)"
         android:textAllCaps="false" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:background="?android:attr/listDivider"
+        android:layout_below="@id/idButtonBulk"
+        android:visibility="visible" />
+
+    <Button
+        android:id="@+id/idButtonFetchLast"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="9dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="Fetch last entry"
+        android:textAllCaps="false" />
+    <Button
+        android:id="@+id/idButtonFetchAll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/idButtonFetchLast"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="9dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="Fetch all entries"
+        android:textAllCaps="false" />
+
+    <EditText
+        android:id="@+id/idMultiText"
+        android:layout_width="323dp"
+        android:layout_height="159dp"
+        android:layout_below="@id/idButtonFetchAll"
+        android:ems="10"
+        android:gravity="start|top"
+        android:inputType="textMultiLine"
+        android:visibility="visible" />
 
 
 </RelativeLayout>

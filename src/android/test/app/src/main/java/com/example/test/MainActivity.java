@@ -12,24 +12,24 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
     // TOTA LA INFORMACIÓ ES POT TROBAR AQUÍ
     // https://firebase.google.com/docs/database/android/read-and-write
+    // https://firebase.google.com/docs/database/android/lists-of-data
     // https://www.geeksforgeeks.org/how-to-save-data-to-the-firebase-realtime-database-in-android/
 
 
     // creating variables for
     // EditText and buttons.
-    private EditText employeeNameEdt, employeePhoneEdt, employeeAddressEdt;
-    private Button sendDatabtn, fetchDatabtn;
+    private EditText textTemp, textHumidity, textPrec, multiLineResults;
+    private Button btnSendEntry, btnSendBulk, btnFetchLast, btnFetchAll;
 
 
     // creating a variable for our
@@ -42,7 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
     // creating a variable for
     // our object class
-    EmployeeInfo employeeInfo;
+    Entry entry;
+    String lastKey = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,33 +51,36 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // initializing our edittext and button
-        employeeNameEdt = findViewById(R.id.idEdtEmployeeName);
-        employeePhoneEdt = findViewById(R.id.idEdtEmployeePhoneNumber);
-        employeeAddressEdt = findViewById(R.id.idEdtEmployeeAddress);
+        textTemp = findViewById(R.id.idTextTemperature);
+        textHumidity = findViewById(R.id.idTextHumidity);
+        textPrec = findViewById(R.id.idTextPrecipitation);
+        multiLineResults = findViewById(R.id.idMultiText);
 
         // below line is used to get the
         // instance of our FIrebase database.
         firebaseDatabase = FirebaseDatabase.getInstance();
 
         // below line is used to get reference for our database.
-        databaseReference = firebaseDatabase.getReference("EmployeeInfo");
+        databaseReference = firebaseDatabase.getReference("Entries");
 
         // initializing our object
         // class variable.
-        employeeInfo = new EmployeeInfo();
+        entry = new Entry();
 
-        sendDatabtn = findViewById(R.id.idBtnSendData);
-        fetchDatabtn = findViewById(R.id.idBtnReceiveData);
+        btnSendEntry = findViewById(R.id.idButtonManually);
+        btnSendBulk = findViewById(R.id.idButtonBulk);
+        btnFetchLast = findViewById(R.id.idButtonFetchLast);
+        btnFetchAll = findViewById(R.id.idButtonFetchAll);
 
         // adding on click listener for our button.
-        sendDatabtn.setOnClickListener(new View.OnClickListener() {
+        btnSendEntry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 // getting text from our edittext fields.
-                String name = employeeNameEdt.getText().toString();
-                String phone = employeePhoneEdt.getText().toString();
-                String address = employeeAddressEdt.getText().toString();
+                String name = textTemp.getText().toString();
+                String phone = textHumidity.getText().toString();
+                String address = textPrec.getText().toString();
 
                 // below line is for checking whether the
                 // edittext fields are empty or not.
@@ -92,17 +96,35 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        fetchDatabtn.setOnClickListener(new View.OnClickListener(){
+        btnFetchAll.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View view) {
-                fetchDataFirebase();
+                Toast.makeText(MainActivity.this, "Not implemented yet", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnSendBulk.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, "Not implemented yet", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        btnFetchLast.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                fetchLastEntry();
             }
         });
     }
 
-    private void fetchDataFirebase(){
-        databaseReference.child("usuaris").child("a").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+    private void fetchLastEntry(){
+
+        /*
+        databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (!task.isSuccessful()) {
@@ -110,26 +132,81 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     Log.d("firebase", String.valueOf(task.getResult().getValue()));
-                    EmployeeInfo em = new EmployeeInfo();
+                    Entry em = new Entry();
                     // TODO aconseguir fer el prase i guardar-lo
 
                     Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
                 }
             }
         });
+
+         */
+
+        databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                    Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
+                    Entry en = task.getResult().getValue(Entry.class);
+                    multiLineResults.setText(String.valueOf(en));
+
+                }
+            }
+        });
+
+
+/*        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Entry entry = snapshot.getValue(Entry.class);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });*/
     }
 
-    private void addDatatoFirebase(String name, String phone, String address) {
+    private void addDatatoFirebase(String temperature, String humidity, String precipitation) {
         // below 3 lines of code is used to set
         // data in our object class.
-        employeeInfo.setEmployeeName(name);
-        employeeInfo.setEmployeeContactNumber(phone);
-        employeeInfo.setEmployeeAddress(address);
-//        databaseReference.setValue(employeeInfo);
-//        Toast.makeText(MainActivity.this, "added data outside event listener", Toast.LENGTH_SHORT).show();
+        entry.setTemperature(temperature);
+        entry.setHumidity(humidity);
+        entry.setPrecipitation(precipitation);
 
+        // AIXÒ ÉS PER POSAR UN NOU VALOR AMB KEY AUTOMATICA https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
+        DatabaseReference pushedRef = databaseReference.push();
+        pushedRef.setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+
+                clearTextBoxes();
+                lastKey= pushedRef.getKey();
+                Toast.makeText(MainActivity.this, "key "+lastKey, Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+        // AIXO ÉS PER DONAR UNA KEY MANUALMENT
+/*        long key = new Date().getTime();
+        databaseReference.child(String.valueOf(key)).setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Toast.makeText(MainActivity.this, "Data sent", Toast.LENGTH_LONG).show();
+            }
+        });*/
+
+
+
+        // AIXO ÉS PER FER-HO DE MANERA ASYNC, REALMENT NO CAL TOCAR-HO I MENYS LIOS
         // we are use add value event listener method
         // which is called with database reference.
+        /*
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -137,7 +214,8 @@ public class MainActivity extends AppCompatActivity {
                 // our object class to our database reference.
                 // data base reference will sends data to firebase.
 //                databaseReference.setValue(employeeInfo);
-                databaseReference.child("usuaris").child(employeeInfo.getEmployeeName()).setValue(employeeInfo);
+                long id = new Date().getTime();
+                databaseReference.child(String.valueOf(id)).setValue(entry);
                 //databaseReference.setValue(employeeInfo);
 
                 // after adding this data we are showing toast message.
@@ -151,5 +229,13 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Fail to add data " + error, Toast.LENGTH_SHORT).show();
             }
         });
+
+         */
+    }
+
+    private void clearTextBoxes(){
+        textTemp.getText().clear();
+        textPrec.getText().clear();
+        textHumidity.getText().clear();
     }
 }
