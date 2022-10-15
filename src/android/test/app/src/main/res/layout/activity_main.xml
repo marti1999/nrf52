@@ -49,7 +49,7 @@
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
                 android:layout_weight="0.25"
-                android:text="Add manually"
+                android:text="Add above"
                 android:textAllCaps="false"
                 android:textSize="14sp" />
 
@@ -69,7 +69,7 @@
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
                 android:layout_weight="0.25"
-                android:text="Clear all entries"
+                android:text="Clear all"
                 android:textAllCaps="false"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -87,38 +87,47 @@
             android:orientation="horizontal"
             android:gravity="center"
             >
+
             <Button
                 android:id="@+id/idButtonFetchLast"
                 android:layout_width="0dp"
-                android:layout_weight="0.25"
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
-                android:text="Fetch last entry"
+                android:layout_weight="0.25"
+                android:text="Fetch last manually"
                 android:textAllCaps="false" />
+
             <Button
                 android:id="@+id/idButtonFetchAll"
                 android:layout_width="0dp"
-                android:layout_weight="0.25"
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
-                android:text="Fetch all entries"
+                android:layout_weight="0.25"
+                android:text="Fetch all manually"
                 android:textAllCaps="false" />
+
+            <ToggleButton
+                android:id="@+id/idToogleAsync"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="ToggleButton"
+                android:textOff="fetch all Async OFF"
+                android:textOn="fetch all Async ON" />
 
 
         </LinearLayout>
 
 
+    <TextView
+        android:id="@+id/idMultiText"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:text="" />
 
-        <EditText
-            android:id="@+id/idMultiText"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:ems="10"
-            android:gravity="start|top"
-            android:inputType="textMultiLine"
-            android:visibility="visible" />
-    </LinearLayout>
+</LinearLayout>
 
 
 

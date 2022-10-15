@@ -5,8 +5,11 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,8 +18,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -29,55 +34,49 @@ public class MainActivity extends AppCompatActivity {
     // https://www.geeksforgeeks.org/how-to-save-data-to-the-firebase-realtime-database-in-android/
 
 
-    // creating variables for
-    // EditText and buttons.
-    private EditText textTemp, textHumidity, textPrec, multiLineResults;
+    // creating variables for EditText and Buttons.
+    private EditText textTemp, textHumidity, textPrec;
+    private TextView multiLineResults;
     private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll;
+    private ToggleButton toBtnAsync;
 
 
-    // creating a variable for our
-    // Firebase Database.
+    // creating a variable for our Firebase Database.
     FirebaseDatabase firebaseDatabase;
 
-    // creating a variable for our Database
-    // Reference for Firebase.
+    // creating a variable for our Database reference for Firebase.
     DatabaseReference databaseReference;
 
-    // creating a variable for
-    // our object class
-    Entry entry;
+    // Variables used in the activity
     String lastKey = "";
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
+    ValueEventListener asyncListener;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // initializing our edittext and button
+        // initializing and mapping GUI components
         textTemp = findViewById(R.id.idTextTemperature);
         textHumidity = findViewById(R.id.idTextHumidity);
         textPrec = findViewById(R.id.idTextPrecipitation);
         multiLineResults = findViewById(R.id.idMultiText);
-
-        // below line is used to get the
-        // instance of our FIrebase database.
-        firebaseDatabase = FirebaseDatabase.getInstance();
-
-        // below line is used to get reference for our database.
-        databaseReference = firebaseDatabase.getReference("Entries");
-
-        // initializing our object
-        // class variable.
-        entry = new Entry();
-
         btnSendEntry = findViewById(R.id.idButtonManually);
         btnSendBulk = findViewById(R.id.idButtonBulk);
         btnFetchLast = findViewById(R.id.idButtonFetchLast);
         btnFetchAll = findViewById(R.id.idButtonFetchAll);
         btnCleanAllEntries = findViewById(R.id.idButtonClearAll);
+        toBtnAsync = findViewById(R.id.idToogleAsync);
 
-        // adding on click listener for our button.
+        // creating firebase instance
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        // Creating a reference to our collection
+        databaseReference = firebaseDatabase.getReference("Entries");
+
+        // adding on click listener for each button.
         btnSendEntry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,20 +86,14 @@ public class MainActivity extends AppCompatActivity {
                 String phone = textHumidity.getText().toString();
                 String address = textPrec.getText().toString();
 
-                // below line is for checking whether the
-                // edittext fields are empty or not.
+                // shows Toast message if a text field is empty. Otherwise calls addEntryToFireabse()
                 if (TextUtils.isEmpty(name) && TextUtils.isEmpty(phone) && TextUtils.isEmpty(address)) {
-                    // if the text fields are empty
-                    // then show the below message.
                     Toast.makeText(MainActivity.this, "Please add some data.", Toast.LENGTH_SHORT).show();
                 } else {
-                    // else call the method to add
-                    // data to our database.
                     addEntryToFirebase(name, phone, address);
                 }
             }
         });
-
 
         btnSendBulk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,17 +101,15 @@ public class MainActivity extends AppCompatActivity {
                 addEntriesBulk();
             }
         });
-        btnCleanAllEntries.setOnClickListener(new View.OnClickListener(){
 
+        btnCleanAllEntries.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 clearAllEntries();
             }
         });
 
-
         btnFetchLast.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View view) {
                 fetchLastEntry();
@@ -126,67 +117,64 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnFetchAll.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View view) {
                 fetchAllEntries();
             }
         });
+
+        toBtnAsync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked){
+                    fetchAllEntriesAsync();
+                } else{
+                    disableFetchAllEntriesAsync();
+                }
+            }
+        });
     }
 
     private void addEntryToFirebase(String temperature, String humidity, String precipitation) {
-        // below 3 lines of code is used to set
-        // data in our object class.
+        Entry entry = new Entry();
         entry.setTemperature(temperature);
         entry.setHumidity(humidity);
         entry.setPrecipitation(precipitation);
 
-        // AIXÒ ÉS PER POSAR UN NOU VALOR AMB KEY AUTOMATICA https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
+        // NOW IT IS PUTTING A NEW ENTRY WITH AN AUTOMATIC KEY https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
+        // push() is creating a random key, so there's no need to call child(myKey)
+        // if the random key needs to be accessed, the reference returned by push must be kept in a variable
         DatabaseReference pushedRef = databaseReference.push();
+
         pushedRef.setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
-
                 clearTextBoxes();
                 lastKey = pushedRef.getKey();
-                //Toast.makeText(MainActivity.this, "key " + lastKey, Toast.LENGTH_LONG).show();
-
             }
         });
 
-        // AIXO ÉS PER DONAR UNA KEY MANUALMENT
+        // THIS WOULD ADD A NEW ENTRY WITH A CUSTOM KEY, IMPORTANT IF IT NEEDS TO BE SORTED LATER BY KEY
 /*        long key = new Date().getTime();
         databaseReference.child(String.valueOf(key)).setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
                 Toast.makeText(MainActivity.this, "Data sent", Toast.LENGTH_LONG).show();
             }
-        });*/
+        });
 
-
-        // AIXO ÉS PER FER-HO DE MANERA ASYNC, REALMENT NO CAL TOCAR-HO I MENYS LIOS
-        // we are use add value event listener method
-        // which is called with database reference.
-        /*
+        // THIS IS AN ASYNC TASK, NOT REALLY NEEDED TO USE, SO LET'S KEEP IT SIMPLE
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // inside the method of on Data change we are setting
-                // our object class to our database reference.
-                // data base reference will sends data to firebase.
-//                databaseReference.setValue(employeeInfo);
+                databaseReference.setValue(employeeInfo);
                 long id = new Date().getTime();
                 databaseReference.child(String.valueOf(id)).setValue(entry);
-                //databaseReference.setValue(employeeInfo);
-
-                // after adding this data we are showing toast message.
                 Toast.makeText(MainActivity.this, "data added", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // if the data is not added or it is cancelled then
-                // we are displaying a failure toast message.
                 Toast.makeText(MainActivity.this, "Fail to add data " + error, Toast.LENGTH_SHORT).show();
             }
         });
@@ -194,18 +182,19 @@ public class MainActivity extends AppCompatActivity {
          */
     }
 
+    // simply adds 10 random entries by calling addEntry 10 times
     private void addEntriesBulk(){
         for (int i = 0; i<10; i++){
             int temp = ThreadLocalRandom.current().nextInt(-10, 40+1);
             int humidity = ThreadLocalRandom.current().nextInt(0, 100+1);
             int precipitation = ThreadLocalRandom.current().nextInt(0, 50);
+
             addEntryToFirebase(String.valueOf(temp), String.valueOf(humidity), String.valueOf(precipitation));
         }
-
-
-
     }
 
+    // fetches all entries and saves them in an ArrayList
+    // it may be saved as well in a map/dictionary
     private void fetchAllEntries() {
         databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
@@ -215,39 +204,74 @@ public class MainActivity extends AppCompatActivity {
                 } else {
 
                     //https://stackoverflow.com/questions/32886546/how-to-extract-a-list-of-objects-from-firebase-datasnapshot-on-android
-                    // la segona solució explica com guardar-ho en un map/diccionari
+                    // thesecond solution explains how to save in in a map/dictionary
                     // https://medium.com/firebase-developers/how-to-map-an-array-of-objects-from-realtime-database-to-a-list-of-objects-53f27b33c8f3
-                    // i aquest últim link explica en sí com funciona els snapshots i mapejar dades de format firebase al que volguem
+                    // this second link explains how to map snapshot data to whatever you need to.
 
+                    // clearing past entries
                     allEntries.clear();
 
+                    // iterating through all children from the result (the result is a list, each children is an Entry)
                     for (DataSnapshot entrySnap : task.getResult().getChildren()) {
                         Entry en = entrySnap.getValue(Entry.class);
                         allEntries.add(en);
                     }
+                    // printing results
                     multiLineResults.setText(String.valueOf(allEntries));
                 }
-
             }
         });
     }
 
-    private void fetchLastEntry() {
+    // enables an async listener for changed on the database.
+    // everytime there is an update on the database, it gets the new data and updates the GUI
+    private void fetchAllEntriesAsync(){
+        // this variable needs to be outside the function because it is needed in another.
+        asyncListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                allEntries.clear();
 
+                for (DataSnapshot entrySnap : snapshot.getChildren()){
+                    Entry en = entrySnap.getValue(Entry.class);
+                    allEntries.add(en);
+                }
+                multiLineResults.setText(String.valueOf(allEntries));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("firebase", "Error getting data", error.toException().getCause());
+            }
+        });
+    }
+
+    // disables asyncListener so new values are not automatically fetched
+    private void disableFetchAllEntriesAsync(){
+        if (databaseReference != null && asyncListener != null){
+            databaseReference.removeEventListener(asyncListener);
+        }
+    }
+
+    // fetches last entry by using the key previously saved.
+    private void fetchLastEntry() {
+        // notice that child(lastKey) is called before get(). Now it only gets the element inside the list, instead of the whole list.
         databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (!task.isSuccessful()) {
                     Log.e("firebase", "Error getting data", task.getException());
                 } else {
+                    // showing notification
                     Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
                     Entry en = task.getResult().getValue(Entry.class);
+                    // printing results
                     multiLineResults.setText(String.valueOf(en));
                 }
             }
         });
 
-
+        // this is an async task, not really needed here.
 /*        databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -261,18 +285,18 @@ public class MainActivity extends AppCompatActivity {
         });*/
     }
 
+    // clearing all the content from the reference (all entries in Firestore Realtime)
     private void clearAllEntries() {
         databaseReference.removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
                 Toast.makeText(MainActivity.this, "All entries cleared", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
 
 
-
+    // clers text from GUI textboxes
     private void clearTextBoxes() {
         textTemp.getText().clear();
         textPrec.getText().clear();
