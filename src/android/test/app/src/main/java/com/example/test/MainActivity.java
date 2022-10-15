@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         btnSendBulk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "Not implemented yet", Toast.LENGTH_SHORT).show();
+                addEntriesBulk();
             }
         });
         btnCleanAllEntries.setOnClickListener(new View.OnClickListener(){
@@ -133,6 +134,77 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void addEntryToFirebase(String temperature, String humidity, String precipitation) {
+        // below 3 lines of code is used to set
+        // data in our object class.
+        entry.setTemperature(temperature);
+        entry.setHumidity(humidity);
+        entry.setPrecipitation(precipitation);
+
+        // AIXÒ ÉS PER POSAR UN NOU VALOR AMB KEY AUTOMATICA https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
+        DatabaseReference pushedRef = databaseReference.push();
+        pushedRef.setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+
+                clearTextBoxes();
+                lastKey = pushedRef.getKey();
+                //Toast.makeText(MainActivity.this, "key " + lastKey, Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+        // AIXO ÉS PER DONAR UNA KEY MANUALMENT
+/*        long key = new Date().getTime();
+        databaseReference.child(String.valueOf(key)).setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Toast.makeText(MainActivity.this, "Data sent", Toast.LENGTH_LONG).show();
+            }
+        });*/
+
+
+        // AIXO ÉS PER FER-HO DE MANERA ASYNC, REALMENT NO CAL TOCAR-HO I MENYS LIOS
+        // we are use add value event listener method
+        // which is called with database reference.
+        /*
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // inside the method of on Data change we are setting
+                // our object class to our database reference.
+                // data base reference will sends data to firebase.
+//                databaseReference.setValue(employeeInfo);
+                long id = new Date().getTime();
+                databaseReference.child(String.valueOf(id)).setValue(entry);
+                //databaseReference.setValue(employeeInfo);
+
+                // after adding this data we are showing toast message.
+                Toast.makeText(MainActivity.this, "data added", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // if the data is not added or it is cancelled then
+                // we are displaying a failure toast message.
+                Toast.makeText(MainActivity.this, "Fail to add data " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+         */
+    }
+
+    private void addEntriesBulk(){
+        for (int i = 0; i<10; i++){
+            int temp = ThreadLocalRandom.current().nextInt(-10, 40+1);
+            int humidity = ThreadLocalRandom.current().nextInt(0, 100+1);
+            int precipitation = ThreadLocalRandom.current().nextInt(0, 50);
+            addEntryToFirebase(String.valueOf(temp), String.valueOf(humidity), String.valueOf(precipitation));
+        }
+
+
+
+    }
 
     private void fetchAllEntries() {
         databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -199,65 +271,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void addEntryToFirebase(String temperature, String humidity, String precipitation) {
-        // below 3 lines of code is used to set
-        // data in our object class.
-        entry.setTemperature(temperature);
-        entry.setHumidity(humidity);
-        entry.setPrecipitation(precipitation);
 
-        // AIXÒ ÉS PER POSAR UN NOU VALOR AMB KEY AUTOMATICA https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
-        DatabaseReference pushedRef = databaseReference.push();
-        pushedRef.setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-
-                clearTextBoxes();
-                lastKey = pushedRef.getKey();
-                Toast.makeText(MainActivity.this, "key " + lastKey, Toast.LENGTH_LONG).show();
-
-            }
-        });
-
-        // AIXO ÉS PER DONAR UNA KEY MANUALMENT
-/*        long key = new Date().getTime();
-        databaseReference.child(String.valueOf(key)).setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                Toast.makeText(MainActivity.this, "Data sent", Toast.LENGTH_LONG).show();
-            }
-        });*/
-
-
-        // AIXO ÉS PER FER-HO DE MANERA ASYNC, REALMENT NO CAL TOCAR-HO I MENYS LIOS
-        // we are use add value event listener method
-        // which is called with database reference.
-        /*
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // inside the method of on Data change we are setting
-                // our object class to our database reference.
-                // data base reference will sends data to firebase.
-//                databaseReference.setValue(employeeInfo);
-                long id = new Date().getTime();
-                databaseReference.child(String.valueOf(id)).setValue(entry);
-                //databaseReference.setValue(employeeInfo);
-
-                // after adding this data we are showing toast message.
-                Toast.makeText(MainActivity.this, "data added", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // if the data is not added or it is cancelled then
-                // we are displaying a failure toast message.
-                Toast.makeText(MainActivity.this, "Fail to add data " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-         */
-    }
 
     private void clearTextBoxes() {
         textTemp.getText().clear();
