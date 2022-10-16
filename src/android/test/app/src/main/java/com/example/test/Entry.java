@@ -7,7 +7,7 @@ public class Entry {
 
     // string variable for storing
     // employee contact number
-    private String humidity;
+    private String wind;
 
     // string variable for storing
     // employee address.
@@ -20,9 +20,9 @@ public class Entry {
 
     }
 
-    public Entry(String temperature, String humidity, String precipitation) {
+    public Entry(String temperature, String wind, String precipitation) {
         this.temperature = temperature;
-        this.humidity = humidity;
+        this.wind = wind;
         this.precipitation = precipitation;
     }
 
@@ -36,12 +36,12 @@ public class Entry {
         this.temperature = temperature;
     }
 
-    public String getHumidity() {
-        return humidity;
+    public String getWind() {
+        return wind;
     }
 
-    public void setHumidity(String humidity) {
-        this.humidity = humidity;
+    public void setWind(String wind) {
+        this.wind = wind;
     }
 
     public String getPrecipitation() {
@@ -56,7 +56,7 @@ public class Entry {
     public String toString() {
         return "Entry{" +
                 "temperature='" + temperature + '\'' +
-                ", humidity='" + humidity + '\'' +
+                ", wind='" + wind + '\'' +
                 ", precipitation='" + precipitation + '\'' +
                 '}';
     }

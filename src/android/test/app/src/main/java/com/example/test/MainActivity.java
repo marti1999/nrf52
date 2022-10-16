@@ -1,5 +1,6 @@
 package com.example.test;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -35,9 +36,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     // creating variables for EditText and Buttons.
-    private EditText textTemp, textHumidity, textPrec;
+    private EditText textTemp, textWind, textPrec;
     private TextView multiLineResults;
-    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll;
+    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll, btnGetStats;
     private ToggleButton toBtnAsync;
 
 
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
         // initializing and mapping GUI components
         textTemp = findViewById(R.id.idTextTemperature);
-        textHumidity = findViewById(R.id.idTextHumidity);
+        textWind = findViewById(R.id.idTextHumidity);
         textPrec = findViewById(R.id.idTextPrecipitation);
         multiLineResults = findViewById(R.id.idMultiText);
         btnSendEntry = findViewById(R.id.idButtonManually);
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         btnFetchAll = findViewById(R.id.idButtonFetchAll);
         btnCleanAllEntries = findViewById(R.id.idButtonClearAll);
         toBtnAsync = findViewById(R.id.idToogleAsync);
+        btnGetStats = findViewById(R.id.idGetStats);
 
         // creating firebase instance
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -77,13 +79,20 @@ public class MainActivity extends AppCompatActivity {
         databaseReference = firebaseDatabase.getReference("Entries");
 
         // adding on click listener for each button.
+        btnGetStats.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent (v.getContext(), Dashboard.class);
+                startActivityForResult(intent, 0);
+            }
+        });
         btnSendEntry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 // getting text from our edittext fields.
                 String name = textTemp.getText().toString();
-                String phone = textHumidity.getText().toString();
+                String phone = textWind.getText().toString();
                 String address = textPrec.getText().toString();
 
                 // shows Toast message if a text field is empty. Otherwise calls addEntryToFireabse()
@@ -135,10 +144,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void addEntryToFirebase(String temperature, String humidity, String precipitation) {
+    private void addEntryToFirebase(String temperature, String wind, String precipitation) {
         Entry entry = new Entry();
         entry.setTemperature(temperature);
-        entry.setHumidity(humidity);
+        entry.setWind(wind);
         entry.setPrecipitation(precipitation);
 
         // NOW IT IS PUTTING A NEW ENTRY WITH AN AUTOMATIC KEY https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
@@ -186,10 +195,10 @@ public class MainActivity extends AppCompatActivity {
     private void addEntriesBulk(){
         for (int i = 0; i<10; i++){
             int temp = ThreadLocalRandom.current().nextInt(-10, 40+1);
-            int humidity = ThreadLocalRandom.current().nextInt(0, 100+1);
+            int wind = ThreadLocalRandom.current().nextInt(0, 100+1);
             int precipitation = ThreadLocalRandom.current().nextInt(0, 50);
 
-            addEntryToFirebase(String.valueOf(temp), String.valueOf(humidity), String.valueOf(precipitation));
+            addEntryToFirebase(String.valueOf(temp), String.valueOf(wind), String.valueOf(precipitation));
         }
     }
 
@@ -300,6 +309,6 @@ public class MainActivity extends AppCompatActivity {
     private void clearTextBoxes() {
         textTemp.getText().clear();
         textPrec.getText().clear();
-        textHumidity.getText().clear();
+        textWind.getText().clear();
     }
 }
