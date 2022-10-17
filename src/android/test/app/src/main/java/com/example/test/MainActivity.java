@@ -1,5 +1,6 @@
 package com.example.test;
 
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -54,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
     ValueEventListener asyncListenerAll, asyncListenerLast;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         btnGetStats.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent (v.getContext(), Dashboard.class);
+                Intent intent = new Intent(v.getContext(), Dashboard.class);
                 startActivityForResult(intent, 0);
             }
         });
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnCleanAllEntries.setOnClickListener(new View.OnClickListener(){
+        btnCleanAllEntries.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 clearAllEntries();
@@ -136,9 +136,9 @@ public class MainActivity extends AppCompatActivity {
         togBtnAllAsync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                if (isChecked){
+                if (isChecked) {
                     fetchAllEntriesAsync();
-                } else{
+                } else {
                     disableFetchAllEntriesAsync();
                 }
             }
@@ -147,14 +147,16 @@ public class MainActivity extends AppCompatActivity {
         togBtnLastAsync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                if (isChecked){
+                if (isChecked) {
                     fetchLastEntryAsync();
-                } else{
+                } else {
                     disableFetchLastEntryAsync();
                 }
             }
         });
+
     }
+
 
     private void addEntryToFirebase(String temperature, String wind, String precipitation) {
         Entry entry = new Entry();

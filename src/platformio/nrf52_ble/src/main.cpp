@@ -16,7 +16,7 @@ BLEPeripheral                    blePeripheral                            = BLEP
 BLEService               ledService           = BLEService("19b10000e8f2537e4f6cd104768a1214");
 
 // create switch characteristic
-BLECharCharacteristic    switchCharacteristic = BLECharCharacteristic("19b10001e8f2537e4f6cd104768a1214", BLERead | BLEWrite);
+BLEIntCharacteristic    switchCharacteristic = BLEIntCharacteristic("19b10001e8f2537e4f6cd104768a1214", BLERead | BLENotify);
 
 void setup() {
   Serial.begin(9600);
@@ -48,19 +48,25 @@ void loop() {
     // central connected to peripheral
     Serial.print(F("Connected to central: "));
     Serial.println(central.address());
+    int i = 0;
 
     while (central.connected()) {
-      // central still connected to peripheral
-      if (switchCharacteristic.written()) {
-        // central wrote new value to characteristic, update LED
-        if (switchCharacteristic.value()) {
-          Serial.println(F("LED on"));
-          digitalWrite(LED_PIN, HIGH);
-        } else {
-          Serial.println(F("LED off"));
-          digitalWrite(LED_PIN, LOW);
-        }
-      }
+
+      switchCharacteristic.setValue(i);
+      delay(1000);
+      i++;
+
+      // // central still connected to peripheral
+      // if (switchCharacteristic.written()) {
+      //   // central wrote new value to characteristic, update LED
+      //   if (switchCharacteristic.value()) {
+      //     Serial.println(F("LED on"));
+      //     digitalWrite(LED_PIN, HIGH);
+      //   } else {
+      //     Serial.println(F("LED off"));
+      //     digitalWrite(LED_PIN, LOW);
+      //   }
+      // }
     }
 
     // central disconnected
