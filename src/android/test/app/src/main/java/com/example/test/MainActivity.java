@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText textTemp, textWind, textPrec;
     private TextView multiLineResults;
     private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll, btnGetStats;
-    private ToggleButton toBtnAsync;
+    private ToggleButton togBtnAllAsync, togBtnLastAsync;
 
 
     // creating a variable for our Firebase Database.
@@ -70,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
         btnFetchLast = findViewById(R.id.idButtonFetchLast);
         btnFetchAll = findViewById(R.id.idButtonFetchAll);
         btnCleanAllEntries = findViewById(R.id.idButtonClearAll);
-        toBtnAsync = findViewById(R.id.idToogleAsync);
+        togBtnAllAsync = findViewById(R.id.idToogleAllAsync);
+        togBtnLastAsync = findViewById(R.id.idToogleLastAsync);
         btnGetStats = findViewById(R.id.idGetStats);
 
         // creating firebase instance
@@ -132,13 +133,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        toBtnAsync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        togBtnAllAsync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked){
+                    fetchAllEntriesAsync();
+                } else{
+                    disableFetchAllEntriesAsync();
+                }
+            }
+        });
+
+        togBtnLastAsync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if (isChecked){
                     fetchLastEntryAsync();
                 } else{
-                    disableFetchAllEntriesAsync();
+                    disableFetchLastEntryAsync();
                 }
             }
         });
@@ -262,13 +274,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void disableFetchLastEntryAsync(){
+        if (databaseReference != null && asyncListenerAll != null){
+            databaseReference.removeEventListener(asyncListenerLast);
+        }
+    }
+
     // fetches last entry by using the key previously saved.
     private void fetchLastEntryAsync() {
         // notice that child(lastKey) is called before get(). Now it only gets the element inside the list, instead of the whole list.
         asyncListenerLast = databaseReference.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Entry en = snapshot.getValue(Entry.class);
+                Entry en = new Entry();
+
+                for (DataSnapshot entrySnap : snapshot.getChildren()){
+                    en = entrySnap.getValue(Entry.class);
+                }
                 multiLineResults.setText(String.valueOf(en));
             }
 
@@ -281,18 +303,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchLastEntry(){
-        databaseReference.child(lastKey).addValueEventListener(new ValueEventListener() {
+        databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Entry entry = snapshot.getValue(Entry.class);
-                multiLineResults.setText(String.valueOf(entry));
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                } else {
+                    Entry entry = task.getResult().getValue(Entry.class);
+                    multiLineResults.setText(String.valueOf(entry));
+                }
             }
         });
+
     }
 
     // clearing all the content from the reference (all entries in Firestore Realtime)

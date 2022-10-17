@@ -1,144 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="10dp"
-    tools:context=".MainActivity">
-
-    <EditText
-        android:id="@+id/idTextTemperature"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:hint="Temperature"
-        android:importantForAutofill="no"
-        android:inputType="textPersonName" />
-
-    <EditText
-        android:id="@+id/idTextHumidity"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:hint="Wind"
-        android:importantForAutofill="no"
-        android:inputType="phone" />
-
-    <EditText
-        android:id="@+id/idTextPrecipitation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:hint="Precipitation"
-        android:inputType="textPostalAddress" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/idButtonManually"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_weight="0.25"
-            android:text="Add above"
-            android:textAllCaps="false"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/idButtonBulk"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_weight="0.25"
-            android:text="Add bulk (10 random)"
-            android:textAllCaps="false"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/idButtonClearAll"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_weight="0.25"
-            android:text="Clear all"
-            android:textAllCaps="false"
-            android:textSize="14sp" />
-    </LinearLayout>
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:layout_marginHorizontal="10dp"
-        android:background="?android:attr/listDivider"
-        android:visibility="visible" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/idButtonFetchLast"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_weight="0.25"
-            android:text="Fetch last manually"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/idButtonFetchAll"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_weight="0.25"
-            android:text="Fetch all manually"
-            android:textAllCaps="false" />
-
-        <ToggleButton
-            android:id="@+id/idToogleAsync"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_weight="0.25"
-            android:text="ToggleButton"
-            android:textOff="fetch all Async OFF"
-            android:textOn="fetch all Async ON" />
-
-
-    </LinearLayout>
-
-
-    <TextView
-        android:id="@+id/idMultiText"
-        android:layout_width="375dp"
-        android:layout_height="148dp"
-        android:layout_margin="10dp"
-        android:text="" />
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="10dp"
+        tools:context=".MainActivity">
 
-        <Button
-            android:id="@+id/idGetStats"
+        <EditText
+            android:id="@+id/idTextTemperature"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Get Stats" />
+            android:layout_margin="10dp"
+            android:hint="Temperature"
+            android:importantForAutofill="no"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/idTextHumidity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:hint="Wind"
+            android:importantForAutofill="no"
+            android:inputType="phone" />
+
+        <EditText
+            android:id="@+id/idTextPrecipitation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:hint="Precipitation"
+            android:inputType="textPostalAddress" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/idButtonManually"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Add above"
+                android:textAllCaps="false"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/idButtonBulk"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Add bulk (10 random)"
+                android:textAllCaps="false"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/idButtonClearAll"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Clear all"
+                android:textAllCaps="false"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="?android:attr/listDivider"
+            android:visibility="visible" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/idButtonFetchLast"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Fetch last manually"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/idButtonFetchAll"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Fetch all manually"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/idGetStats"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Get Stats"
+                android:textAllCaps="false" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ToggleButton
+                android:id="@+id/idToogleAllAsync"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="ToggleButton"
+                android:textOff="fetch all Async OFF"
+                android:textOn="fetch all Async ON" />
+
+            <ToggleButton
+                android:id="@+id/idToogleLastAsync"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="ToggleButton"
+                android:textOff="fetch last Async OFF"
+                android:textOn="fetch last Async ON" />
+
+
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/idMultiText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="" />
+
+
     </LinearLayout>
 
-</LinearLayout>
 
-
-
+</FrameLayout>
 
