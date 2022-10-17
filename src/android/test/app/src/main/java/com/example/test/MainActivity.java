@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     // Variables used in the activity
     String lastKey = "";
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
-    ValueEventListener asyncListener;
+    ValueEventListener asyncListenerAll, asyncListenerLast;
 
 
 
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if (isChecked){
-                    fetchAllEntriesAsync();
+                    fetchLastEntryAsync();
                 } else{
                     disableFetchAllEntriesAsync();
                 }
@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
     // everytime there is an update on the database, it gets the new data and updates the GUI
     private void fetchAllEntriesAsync(){
         // this variable needs to be outside the function because it is needed in another.
-        asyncListener = databaseReference.addValueEventListener(new ValueEventListener() {
+        asyncListenerAll = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allEntries.clear();
@@ -257,41 +257,42 @@ public class MainActivity extends AppCompatActivity {
 
     // disables asyncListener so new values are not automatically fetched
     private void disableFetchAllEntriesAsync(){
-        if (databaseReference != null && asyncListener != null){
-            databaseReference.removeEventListener(asyncListener);
+        if (databaseReference != null && asyncListenerAll != null){
+            databaseReference.removeEventListener(asyncListenerAll);
         }
     }
 
     // fetches last entry by using the key previously saved.
-    private void fetchLastEntry() {
+    private void fetchLastEntryAsync() {
         // notice that child(lastKey) is called before get(). Now it only gets the element inside the list, instead of the whole list.
-        databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (!task.isSuccessful()) {
-                    Log.e("firebase", "Error getting data", task.getException());
-                } else {
-                    // showing notification
-                    Toast.makeText(MainActivity.this, String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
-                    Entry en = task.getResult().getValue(Entry.class);
-                    // printing results
-                    multiLineResults.setText(String.valueOf(en));
-                }
-            }
-        });
-
-        // this is an async task, not really needed here.
-/*        databaseReference.addValueEventListener(new ValueEventListener() {
+        asyncListenerLast = databaseReference.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Entry entry = snapshot.getValue(Entry.class);
+                Entry en = snapshot.getValue(Entry.class);
+                multiLineResults.setText(String.valueOf(en));
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
-        });*/
+        });
+
+    }
+
+    private void fetchLastEntry(){
+        databaseReference.child(lastKey).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Entry entry = snapshot.getValue(Entry.class);
+                multiLineResults.setText(String.valueOf(entry));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     // clearing all the content from the reference (all entries in Firestore Realtime)

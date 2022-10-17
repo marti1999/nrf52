@@ -63,7 +63,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ªC"
+                            android:text="Cº"
                             android:fontFamily="sans-serif-condensed-medium"
                             android:textSize="20sp"
                             android:textColor="@color/black"/>
@@ -95,13 +95,13 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-condensed-medium"
-                            android:text="Precipitation"
+                            android:text="Precipitation:"
                             android:textColor="@color/black"
                             android:textSize="18sp" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-"
+                            android:text="mL"
                             android:fontFamily="sans-serif-condensed-medium"
                             android:textSize="20sp"
                             android:textColor="@color/black"/>
@@ -131,13 +131,13 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-condensed-medium"
-                            android:text="Wind"
+                            android:text="Wind:"
                             android:textColor="@color/black"
                             android:textSize="18sp" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-"
+                            android:text="km/h"
                             android:fontFamily="sans-serif-condensed-medium"
                             android:textSize="20sp"
                             android:textColor="@color/black"/>
