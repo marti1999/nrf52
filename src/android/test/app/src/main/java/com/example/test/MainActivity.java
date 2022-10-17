@@ -1,7 +1,9 @@
 package com.example.test;
 
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,7 +17,13 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleScanCallback;
+import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -26,6 +34,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     String lastKey = "";
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
     ValueEventListener asyncListenerAll, asyncListenerLast;
+
+    private static final int BLUETOOTH_CODE = 100;
+
 
 
     @Override
@@ -129,7 +141,10 @@ public class MainActivity extends AppCompatActivity {
         btnFetchAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fetchAllEntries();
+                // TODO crear el botó pertinent
+                Toast.makeText(MainActivity.this, "botó mapejat per fer proves Bluetooth", Toast.LENGTH_SHORT).show();
+                ble_test();
+//                fetchAllEntries();
             }
         });
 
@@ -157,6 +172,106 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void ble_test(){
+        // https://developer.android.com/guide/topics/connectivity/bluetooth/permissions
+        // https://www.geeksforgeeks.org/android-how-to-request-permissions-in-android-application/
+        // https://developer.android.com/training/permissions/requesting#request-permission
+        // https://github.com/Jasonchenlijian/FastBle
+        // https://programming.vip/docs/android-bluetooth-library-simple-use-of-fastble.html
+
+
+
+
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN}, BLUETOOTH_CODE);
+
+
+        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED)
+        {
+            Log.e("ble", "NO TÉ PERMISOS");
+            Toast.makeText(this, "error permisos BLUETOOTH_CONNECT", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+/*        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_ADVERTISE)
+                != PackageManager.PERMISSION_GRANTED)
+        {
+            Log.e("ble", "NO TÉ PERMISOS");
+            Toast.makeText(this, "error permisos BLUETOOTH_ADVERTISE", Toast.LENGTH_SHORT).show();
+            return;
+        }*/
+
+        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_SCAN )
+                != PackageManager.PERMISSION_GRANTED)
+        {
+            Log.e("ble", "NO TÉ PERMISOS");
+            Toast.makeText(this, "error permisos BLUETOOTH_SCAN ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+        BleManager.getInstance().init(getApplication());
+        BleManager.getInstance()
+                .enableLog(true)
+                .setReConnectCount(1, 5000)
+                .setSplitWriteNum(20)
+                .setConnectOverTime(10000)
+                .setOperateTimeout(50000);
+        BleManager.getInstance().enableBluetooth();
+
+        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
+                // TODO un cop funcioni, posar el filtre per connectar automàticament
+                //.setServiceUuids(serviceUuids)      // Scan only the device for the specified service, optional
+                //.setDeviceName(true, names)         // Scan only the device with the specified broadcast name, optional
+                //.setDeviceMac(mac)                  // Scan only the specified mac device, optional
+                //.setAutoConnect(isAutoConnect)      // autoConnect parameter at connection time, optional, default false
+                //.setScanTimeOut(10000)              // Scan timeout, optional, default 10 seconds; less than or equal to 0 means no limit on scan time
+                .build();
+
+
+        BleManager.getInstance().scan(new BleScanCallback() {
+            @Override
+            public void onScanFinished(List<BleDevice> scanResultList) {
+                for (BleDevice device : scanResultList){
+                    Log.d("BLE", "NAME: "+device.getName());
+                }
+
+            }
+
+            @Override
+            public void onScanStarted(boolean success) {
+                Log.d("BLE", "INICI SCAN");
+            }
+
+            @Override
+            public void onScanning(BleDevice bleDevice) {
+                Log.d("BLE", "ESCANEJANT");
+            }
+        });
+
+
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults)
+    {
+        super.onRequestPermissionsResult(requestCode,
+                permissions,
+                grantResults);
+
+        if (requestCode == BLUETOOTH_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                Toast.makeText(MainActivity.this, "BLUETOOTH_CONNECT_CODE Permission Granted", Toast.LENGTH_SHORT) .show();
+            }
+            else {
+//                Toast.makeText(MainActivity.this, "BLUETOOTH_CONNECT_CODE Permission Denied", Toast.LENGTH_SHORT) .show();
+            }
+        }
+
+    }
 
     private void addEntryToFirebase(String temperature, String wind, String precipitation) {
         Entry entry = new Entry();
