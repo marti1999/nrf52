@@ -2,6 +2,7 @@ package com.example.test;
 
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     // creating variables for EditText and Buttons.
     private EditText textTemp, textWind, textPrec;
     private TextView multiLineResults;
-    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll, btnGetStats;
+    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll, btnGetStats, btnScan;
     private ToggleButton togBtnAllAsync, togBtnLastAsync;
 
 
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Variables used in the activity
     String lastKey = "";
+
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
     ValueEventListener asyncListenerAll, asyncListenerLast;
 
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         btnCleanAllEntries = findViewById(R.id.idButtonClearAll);
         togBtnAllAsync = findViewById(R.id.idToogleAllAsync);
         togBtnLastAsync = findViewById(R.id.idToogleLastAsync);
+        btnScan = findViewById(R.id.idBtnScan);
         btnGetStats = findViewById(R.id.idGetStats);
 
         // creating firebase instance
@@ -141,10 +144,7 @@ public class MainActivity extends AppCompatActivity {
         btnFetchAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO crear el botó pertinent
-                Toast.makeText(MainActivity.this, "botó mapejat per fer proves Bluetooth", Toast.LENGTH_SHORT).show();
-                ble_test();
-//                fetchAllEntries();
+                fetchAllEntries();
             }
         });
 
@@ -170,87 +170,45 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ble_checkpermission();
+            }
+        });
+
+        BleManager.getInstance().init(getApplication());
+        BleManager.getInstance()
+                .enableLog(true)
+                .setReConnectCount(1, 5000)
+                .setConnectOverTime(20000)
+                .setOperateTimeout(5000);
+
+
     }
 
-    private void ble_test(){
+    private void ble_checkpermission(){
         // https://developer.android.com/guide/topics/connectivity/bluetooth/permissions
         // https://www.geeksforgeeks.org/android-how-to-request-permissions-in-android-application/
         // https://developer.android.com/training/permissions/requesting#request-permission
         // https://github.com/Jasonchenlijian/FastBle
         // https://programming.vip/docs/android-bluetooth-library-simple-use-of-fastble.html
 
-
-
-
-        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN}, BLUETOOTH_CODE);
-
-
-        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT)
-                != PackageManager.PERMISSION_GRANTED)
-        {
-            Log.e("ble", "NO TÉ PERMISOS");
-            Toast.makeText(this, "error permisos BLUETOOTH_CONNECT", Toast.LENGTH_SHORT).show();
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!bluetoothAdapter.isEnabled()) {
+            Toast.makeText(this, "obrir bluetooth", Toast.LENGTH_LONG).show();
             return;
         }
 
-/*        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_ADVERTISE)
-                != PackageManager.PERMISSION_GRANTED)
-        {
-            Log.e("ble", "NO TÉ PERMISOS");
-            Toast.makeText(this, "error permisos BLUETOOTH_ADVERTISE", Toast.LENGTH_SHORT).show();
-            return;
-        }*/
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_FINE_LOCATION}, BLUETOOTH_CODE);
 
-        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_SCAN )
-                != PackageManager.PERMISSION_GRANTED)
-        {
-            Log.e("ble", "NO TÉ PERMISOS");
-            Toast.makeText(this, "error permisos BLUETOOTH_SCAN ", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-
-        BleManager.getInstance().init(getApplication());
-        BleManager.getInstance()
-                .enableLog(true)
-                .setReConnectCount(1, 5000)
-                .setSplitWriteNum(20)
-                .setConnectOverTime(10000)
-                .setOperateTimeout(50000);
-        BleManager.getInstance().enableBluetooth();
-
-        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
-                // TODO un cop funcioni, posar el filtre per connectar automàticament
-                //.setServiceUuids(serviceUuids)      // Scan only the device for the specified service, optional
-                //.setDeviceName(true, names)         // Scan only the device with the specified broadcast name, optional
-                //.setDeviceMac(mac)                  // Scan only the specified mac device, optional
-                //.setAutoConnect(isAutoConnect)      // autoConnect parameter at connection time, optional, default false
-                //.setScanTimeOut(10000)              // Scan timeout, optional, default 10 seconds; less than or equal to 0 means no limit on scan time
-                .build();
-
-
-        BleManager.getInstance().scan(new BleScanCallback() {
-            @Override
-            public void onScanFinished(List<BleDevice> scanResultList) {
-                for (BleDevice device : scanResultList){
-                    Log.d("BLE", "NAME: "+device.getName());
-                }
-
-            }
-
-            @Override
-            public void onScanStarted(boolean success) {
-                Log.d("BLE", "INICI SCAN");
-            }
-
-            @Override
-            public void onScanning(BleDevice bleDevice) {
-                Log.d("BLE", "ESCANEJANT");
-            }
-        });
-
-
-
+//        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT)
+//                != PackageManager.PERMISSION_GRANTED)
+//        {
+//            Log.e("ble", "NO TÉ PERMISOS");
+//            Toast.makeText(this, "error permisos BLUETOOTH_CONNECT", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
     }
 
     @Override
@@ -265,11 +223,51 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == BLUETOOTH_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 //                Toast.makeText(MainActivity.this, "BLUETOOTH_CONNECT_CODE Permission Granted", Toast.LENGTH_SHORT) .show();
+                ble_setScanRule();
+                ble_startScan();
             }
             else {
-//                Toast.makeText(MainActivity.this, "BLUETOOTH_CONNECT_CODE Permission Denied", Toast.LENGTH_SHORT) .show();
+                Toast.makeText(MainActivity.this, "permisos denegats", Toast.LENGTH_SHORT) .show();
             }
         }
+    }
+
+    private void ble_setScanRule(){
+        // TODO fer que es connecti automàticament
+        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
+                .setServiceUuids(null)
+                .setDeviceName(true, null)
+                .setDeviceMac("")
+                .setAutoConnect(false)
+                .setScanTimeOut(10000)
+                .build();
+        BleManager.getInstance().initScanRule(scanRuleConfig);
+    }
+
+    private void ble_startScan(){
+        BleManager.getInstance().scan(new BleScanCallback() {
+            @Override
+            public void onScanFinished(List<BleDevice> scanResultList) {
+                Log.d("BLE", "scan finished");
+            }
+
+            @Override
+            public void onLeScan(BleDevice bleDevice) {
+                super.onLeScan(bleDevice);
+            }
+
+            @Override
+            public void onScanStarted(boolean success) {
+                Log.d("BLE", "scan started");
+
+            }
+
+            @Override
+            public void onScanning(BleDevice bleDevice) {
+                Log.d("BLE", "device found: "+bleDevice.getName());
+
+            }
+        });
 
     }
 

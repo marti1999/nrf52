@@ -146,6 +146,15 @@
                 android:textOff="fetch last Async OFF"
                 android:textOn="fetch last Async ON" />
 
+            <Button
+                android:id="@+id/idBtnScan"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Scan"
+                android:textAllCaps="false" />
+
 
         </LinearLayout>
 
