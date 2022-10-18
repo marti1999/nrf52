@@ -60,12 +60,7 @@ public class MainActivity extends AppCompatActivity {
             btnGetStats, btnScan, btnConnect, btnRead;
     private ToggleButton togBtnAllAsync, togBtnLastAsync;
 
-
-    // creating a variable for our Firebase Database.
-    FirebaseDatabase firebaseDatabase;
-
-    // creating a variable for our Database reference for Firebase.
-    DatabaseReference databaseReference;
+    myReference ref;
 
     // Variables used in the activity
     String lastKey = "";
@@ -113,10 +108,13 @@ public class MainActivity extends AppCompatActivity {
         btnConnect = findViewById(R.id.idBtnConnect);
         btnRead = findViewById(R.id.idBtnRead);
 
+
+        // initializing myReference class (cloud reference)
+        ref = new myReference("Entries");
         // creating firebase instance
-        firebaseDatabase = FirebaseDatabase.getInstance();
+//        firebaseDatabase = FirebaseDatabase.getInstance();
         // Creating a reference to our collection
-        databaseReference = firebaseDatabase.getReference("Entries");
+//        databaseReference = firebaseDatabase.getReference("Entries");
 
         // adding on click listener for each button.
         btnGetStats.setOnClickListener(new View.OnClickListener() {
@@ -414,50 +412,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addEntryToFirebase(String temperature, String wind, String precipitation) {
+
         Entry entry = new Entry();
         entry.setTemperature(temperature);
         entry.setWind(wind);
         entry.setPrecipitation(precipitation);
+        boolean result = ref.addEntryToFirebase(entry);
+        if (!result) {
+            Toast.makeText(this, "add entry failed", Toast.LENGTH_SHORT).show();
+        }
 
-        // NOW IT IS PUTTING A NEW ENTRY WITH AN AUTOMATIC KEY https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
-        // push() is creating a random key, so there's no need to call child(myKey)
-        // if the random key needs to be accessed, the reference returned by push must be kept in a variable
-        DatabaseReference pushedRef = databaseReference.push();
-
-        pushedRef.setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                clearTextBoxes();
-                lastKey = pushedRef.getKey();
-            }
-        });
-
-        // THIS WOULD ADD A NEW ENTRY WITH A CUSTOM KEY, IMPORTANT IF IT NEEDS TO BE SORTED LATER BY KEY
-/*        long key = new Date().getTime();
-        databaseReference.child(String.valueOf(key)).setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                Toast.makeText(MainActivity.this, "Data sent", Toast.LENGTH_LONG).show();
-            }
-        });
-
-        // THIS IS AN ASYNC TASK, NOT REALLY NEEDED TO USE, SO LET'S KEEP IT SIMPLE
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                databaseReference.setValue(employeeInfo);
-                long id = new Date().getTime();
-                databaseReference.child(String.valueOf(id)).setValue(entry);
-                Toast.makeText(MainActivity.this, "data added", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(MainActivity.this, "Fail to add data " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-         */
     }
 
     // simply adds 10 random entries by calling addEntry 10 times
@@ -466,122 +430,70 @@ public class MainActivity extends AppCompatActivity {
             int temp = ThreadLocalRandom.current().nextInt(-10, 40 + 1);
             int wind = ThreadLocalRandom.current().nextInt(0, 100 + 1);
             int precipitation = ThreadLocalRandom.current().nextInt(0, 50);
+            Entry entry = new Entry();
+            entry.setTemperature(String.valueOf(temp));
+            entry.setWind(String.valueOf(wind));
+            entry.setPrecipitation(String.valueOf(precipitation));
 
-            addEntryToFirebase(String.valueOf(temp), String.valueOf(wind), String.valueOf(precipitation));
+            if (!ref.addEntryToFirebase(entry)) {
+                Toast.makeText(this, "add entries failed", Toast.LENGTH_SHORT).show();
+                break;
+            }
+
         }
     }
 
     // fetches all entries and saves them in an ArrayList
     // it may be saved as well in a map/dictionary
     private void fetchAllEntries() {
-        databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (!task.isSuccessful()) {
-                    Log.e("firebase", "Error getting data", task.getException());
-                } else {
+        boolean result = ref.fetchAllEntries();
 
-                    //https://stackoverflow.com/questions/32886546/how-to-extract-a-list-of-objects-from-firebase-datasnapshot-on-android
-                    // thesecond solution explains how to save in in a map/dictionary
-                    // https://medium.com/firebase-developers/how-to-map-an-array-of-objects-from-realtime-database-to-a-list-of-objects-53f27b33c8f3
-                    // this second link explains how to map snapshot data to whatever you need to.
-
-                    // clearing past entries
-                    allEntries.clear();
-
-                    // iterating through all children from the result (the result is a list, each children is an Entry)
-                    for (DataSnapshot entrySnap : task.getResult().getChildren()) {
-                        Entry en = entrySnap.getValue(Entry.class);
-                        allEntries.add(en);
-                    }
-                    // printing results
-                    multiLineResults.setText(String.valueOf(allEntries));
-                }
-            }
-        });
+        if (result) {
+            multiLineResults.setText(String.valueOf(ref.getAllEntries()));
+        }
     }
 
     // enables an async listener for changed on the database.
     // everytime there is an update on the database, it gets the new data and updates the GUI
     private void fetchAllEntriesAsync() {
-        // this variable needs to be outside the function because it is needed in another.
-        asyncListenerAll = databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                allEntries.clear();
-
-                for (DataSnapshot entrySnap : snapshot.getChildren()) {
-                    Entry en = entrySnap.getValue(Entry.class);
-                    allEntries.add(en);
-                }
-                multiLineResults.setText(String.valueOf(allEntries));
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("firebase", "Error getting data", error.toException().getCause());
-            }
-        });
+        boolean result = ref.fetchAllEntriesAsync();
+        if (result) {
+            multiLineResults.setText(String.valueOf(ref.getAllEntries()));
+        }
     }
 
     // disables asyncListener so new values are not automatically fetched
     private void disableFetchAllEntriesAsync() {
-        if (databaseReference != null && asyncListenerAll != null) {
-            databaseReference.removeEventListener(asyncListenerAll);
-        }
+        ref.disableFetchAllEntriesAsync();
     }
 
     private void disableFetchLastEntryAsync() {
-        if (databaseReference != null && asyncListenerAll != null) {
-            databaseReference.removeEventListener(asyncListenerLast);
-        }
+        ref.disableFetchLastEntryAsync();
     }
 
     // fetches last entry by using the key previously saved.
     private void fetchLastEntryAsync() {
-        // notice that child(lastKey) is called before get(). Now it only gets the element inside the list, instead of the whole list.
-        asyncListenerLast = databaseReference.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Entry en = new Entry();
-
-                for (DataSnapshot entrySnap : snapshot.getChildren()) {
-                    en = entrySnap.getValue(Entry.class);
-                }
-                multiLineResults.setText(String.valueOf(en));
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
+        boolean result = ref.fetchLastEntryAsync();
+        if (result) {
+            multiLineResults.setText(String.valueOf(ref.getCurrentEntry()));
+        }
     }
 
     private void fetchLastEntry() {
-        databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (!task.isSuccessful()) {
-                    Log.e("firebase", "Error getting data", task.getException());
-                } else {
-                    Entry entry = task.getResult().getValue(Entry.class);
-                    multiLineResults.setText(String.valueOf(entry));
-                }
-            }
-        });
+        boolean result = ref.fetchLastEntry();
+        if (result) {
+            multiLineResults.setText(String.valueOf(ref.getCurrentEntry()));
+        }
+
 
     }
 
     // clearing all the content from the reference (all entries in Firestore Realtime)
     private void clearAllEntries() {
-        databaseReference.removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                Toast.makeText(MainActivity.this, "All entries cleared", Toast.LENGTH_SHORT).show();
-            }
-        });
+        boolean result = ref.clearAllEntries();
+        if(result){
+            Toast.makeText(MainActivity.this, "All entries cleared", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
