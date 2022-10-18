@@ -4,6 +4,7 @@ package com.example.test;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattService;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import com.clj.fastble.callback.BleScanCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
 import com.clj.fastble.scan.BleScanRuleConfig;
+import com.clj.fastble.utils.HexUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -38,6 +40,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -198,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnConnect.setOnClickListener(new View.OnClickListener(){
+        btnConnect.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
@@ -280,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void ble_startScan() {
 
-        if (isNRF52Connected || isNRF52Found){
+        if (isNRF52Connected || isNRF52Found) {
             Toast.makeText(this, "Already paired", Toast.LENGTH_SHORT).show();
         }
 
@@ -314,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ble_connect() {
-        if (!isNRF52Found){
+        if (!isNRF52Found) {
             Toast.makeText(this, "NRF52 was not discovered. Scan again", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -338,7 +341,12 @@ public class MainActivity extends AppCompatActivity {
                     isNRF52Connected = true;
                     Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT).show();
                     multiLineResults.setText("");
+
                     // TODO mostrar per pantalla els serveis i característiques
+
+//                    List<BluetoothGattService> services = BleManager.getInstance().getBluetoothGattServices(nrf52);
+//                    services.
+
                 }
 
                 @Override
@@ -355,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
     private void ble_read() {
         Log.d("BLE", "BLE_read: ");
 
-        if (!isNRF52Connected){
+        if (!isNRF52Connected) {
             return;
         }
 
@@ -365,10 +373,19 @@ public class MainActivity extends AppCompatActivity {
         BleManager.getInstance().read(nrf52, uuid_service, uuid_characteristic, new BleReadCallback() {
             @Override
             public void onReadSuccess(byte[] data) {
-                ByteBuffer wrapped = ByteBuffer.wrap(data);
-                int num = wrapped.getInt();
-                multiLineResults.setText(String.valueOf(num));
-                Log.d("BLE", "Received: " + String.valueOf(num));
+//                ByteBuffer wrapped = ByteBuffer.wrap(data);
+//                int num = wrapped.getInt();
+                String big_endian = HexUtil.formatHexString(data, false);
+
+//                ByteBuffer bbuf = ByteBuffer.allocate(4);
+//                bbuf.order(ByteOrder.BIG_ENDIAN);
+//                bbuf.putInt(Integer.parseInt(num));
+//                bbuf.order(ByteOrder.LITTLE_ENDIAN);
+//                int integer_little_endian = bbuf.getInt();
+
+                String little_endian = swapEndianString(big_endian);
+                multiLineResults.setText(little_endian);
+                Log.d("BLE", "Received: " + big_endian);
             }
 
             @Override
@@ -385,6 +402,15 @@ public class MainActivity extends AppCompatActivity {
                         "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"
                 )
         ).toString();
+    }
+
+    private String swapEndianString(String in) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < in.length(); i += 2) {
+            String s = in.substring(i, i + 2);
+            sb.insert(0, s);
+        }
+        return sb.toString();
     }
 
     private void addEntryToFirebase(String temperature, String wind, String precipitation) {
