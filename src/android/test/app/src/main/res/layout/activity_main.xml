@@ -12,32 +12,44 @@
         android:orientation="vertical"
         android:padding="10dp"
         tools:context=".MainActivity">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
 
         <EditText
             android:id="@+id/idTextTemperature"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_margin="10dp"
+            android:layout_weight="0.25"
             android:hint="Temperature"
             android:importantForAutofill="no"
             android:inputType="textPersonName" />
 
         <EditText
             android:id="@+id/idTextHumidity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_margin="10dp"
+            android:layout_weight="0.25"
             android:hint="Wind"
             android:importantForAutofill="no"
             android:inputType="phone" />
 
         <EditText
             android:id="@+id/idTextPrecipitation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_margin="10dp"
+            android:layout_weight="0.25"
             android:hint="Precipitation"
             android:inputType="textPostalAddress" />
+
+    </LinearLayout>
+
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -146,6 +158,16 @@
                 android:textOff="fetch last Async OFF"
                 android:textOn="fetch last Async ON" />
 
+
+
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
             <Button
                 android:id="@+id/idBtnScan"
                 android:layout_width="0dp"
@@ -154,10 +176,25 @@
                 android:layout_weight="0.25"
                 android:text="Scan"
                 android:textAllCaps="false" />
+            <Button
+                android:id="@+id/idBtnConnect"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Connect"
+                android:textAllCaps="false" />
+            <Button
+                android:id="@+id/idBtnRead"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.25"
+                android:text="Read"
+                android:textAllCaps="false" />
 
 
         </LinearLayout>
-
 
         <TextView
             android:id="@+id/idMultiText"

@@ -3,6 +3,7 @@ package com.example.test;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothGatt;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -19,11 +20,13 @@ import android.widget.ToggleButton;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleGattCallback;
+import com.clj.fastble.callback.BleReadCallback;
 import com.clj.fastble.callback.BleScanCallback;
 import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.exception.BleException;
 import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -34,6 +37,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -49,7 +53,8 @@ public class MainActivity extends AppCompatActivity {
     // creating variables for EditText and Buttons.
     private EditText textTemp, textWind, textPrec;
     private TextView multiLineResults;
-    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll, btnGetStats, btnScan;
+    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll,
+            btnGetStats, btnScan, btnConnect, btnRead;
     private ToggleButton togBtnAllAsync, togBtnLastAsync;
 
 
@@ -65,9 +70,23 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
     ValueEventListener asyncListenerAll, asyncListenerLast;
 
+    BleDevice nrf52;
+
     private static final int BLUETOOTH_CODE = 100;
+    private static final String SERVICE_UUID = "19b10000e8f2537e4f6cd104768a1214";
+    private static final String CHARACTERISTIC_UUID = "19b10001e8f2537e4f6cd104768a1214";
+    private boolean isNRF52Found = false;
+    private boolean isNRF52Connected = false;
 
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (BleManager.getInstance().isConnected(nrf52)) {
+            BleManager.getInstance().disconnect(nrf52);
+        }
+        BleManager.getInstance().destroy();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +105,10 @@ public class MainActivity extends AppCompatActivity {
         btnCleanAllEntries = findViewById(R.id.idButtonClearAll);
         togBtnAllAsync = findViewById(R.id.idToogleAllAsync);
         togBtnLastAsync = findViewById(R.id.idToogleLastAsync);
-        btnScan = findViewById(R.id.idBtnScan);
         btnGetStats = findViewById(R.id.idGetStats);
+        btnScan = findViewById(R.id.idBtnScan);
+        btnConnect = findViewById(R.id.idBtnConnect);
+        btnRead = findViewById(R.id.idBtnRead);
 
         // creating firebase instance
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -177,6 +198,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnConnect.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                ble_connect();
+            }
+        });
+
+        btnRead.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ble_read();
+            }
+        });
+
         BleManager.getInstance().init(getApplication());
         BleManager.getInstance()
                 .enableLog(true)
@@ -187,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void ble_checkpermission(){
+    private void ble_checkpermission() {
         // https://developer.android.com/guide/topics/connectivity/bluetooth/permissions
         // https://www.geeksforgeeks.org/android-how-to-request-permissions-in-android-application/
         // https://developer.android.com/training/permissions/requesting#request-permission
@@ -214,8 +250,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
-                                           @NonNull int[] grantResults)
-    {
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode,
                 permissions,
                 grantResults);
@@ -225,30 +260,35 @@ public class MainActivity extends AppCompatActivity {
 //                Toast.makeText(MainActivity.this, "BLUETOOTH_CONNECT_CODE Permission Granted", Toast.LENGTH_SHORT) .show();
                 ble_setScanRule();
                 ble_startScan();
-            }
-            else {
-                Toast.makeText(MainActivity.this, "permisos denegats", Toast.LENGTH_SHORT) .show();
+            } else {
+                Toast.makeText(MainActivity.this, "permisos denegats", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void ble_setScanRule(){
-        // TODO fer que es connecti automàticament
+    private void ble_setScanRule() {
+        // TODO fer que es connecti automàticament.
         BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
                 .setServiceUuids(null)
                 .setDeviceName(true, null)
-                .setDeviceMac("")
+                .setDeviceMac("F0:09:D9:4C:E9:18")
                 .setAutoConnect(false)
                 .setScanTimeOut(10000)
                 .build();
         BleManager.getInstance().initScanRule(scanRuleConfig);
     }
 
-    private void ble_startScan(){
+    private void ble_startScan() {
+
+        if (isNRF52Connected || isNRF52Found){
+            Toast.makeText(this, "Already paired", Toast.LENGTH_SHORT).show();
+        }
+
         BleManager.getInstance().scan(new BleScanCallback() {
             @Override
             public void onScanFinished(List<BleDevice> scanResultList) {
                 Log.d("BLE", "scan finished");
+
             }
 
             @Override
@@ -264,11 +304,87 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onScanning(BleDevice bleDevice) {
-                Log.d("BLE", "device found: "+bleDevice.getName());
-
+                Log.d("BLE", "device found: " + bleDevice.getName());
+                nrf52 = bleDevice;
+                multiLineResults.setText("Device found: \n" + nrf52.getName() + "\n" + nrf52.getMac());
+                isNRF52Found = true;
             }
         });
 
+    }
+
+    private void ble_connect() {
+        if (!isNRF52Found){
+            Toast.makeText(this, "NRF52 was not discovered. Scan again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!BleManager.getInstance().isConnected(nrf52)) {
+            BleManager.getInstance().cancelScan();
+            BleManager.getInstance().connect(nrf52, new BleGattCallback() {
+
+                @Override
+                public void onStartConnect() {
+                    Log.d("BLE", "Connecting... ");
+                }
+
+                @Override
+                public void onConnectFail(BleDevice bleDevice, BleException exception) {
+                    Log.d("BLE", "connexion failed");
+                }
+
+                @Override
+                public void onConnectSuccess(BleDevice bleDevice, BluetoothGatt gatt, int status) {
+                    Log.d("BLE", "connected!! ");
+                    isNRF52Connected = true;
+                    Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT).show();
+                    multiLineResults.setText("");
+                    // TODO mostrar per pantalla els serveis i característiques
+                }
+
+                @Override
+                public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
+                    Log.d("BLE", "Disconnected ");
+
+                }
+            });
+        } else {
+            Toast.makeText(this, "Already connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void ble_read() {
+        Log.d("BLE", "BLE_read: ");
+
+        if (!isNRF52Connected){
+            return;
+        }
+
+        String uuid_service = formatAsUUID(SERVICE_UUID);
+        String uuid_characteristic = formatAsUUID(CHARACTERISTIC_UUID);
+
+        BleManager.getInstance().read(nrf52, uuid_service, uuid_characteristic, new BleReadCallback() {
+            @Override
+            public void onReadSuccess(byte[] data) {
+                ByteBuffer wrapped = ByteBuffer.wrap(data);
+                int num = wrapped.getInt();
+                multiLineResults.setText(String.valueOf(num));
+                Log.d("BLE", "Received: " + String.valueOf(num));
+            }
+
+            @Override
+            public void onReadFailure(BleException exception) {
+                Log.d("BLE", "error read: " + exception.getDescription());
+            }
+        });
+
+    }
+
+    private String formatAsUUID(String raw) {
+        return java.util.UUID.fromString(
+                raw.replaceFirst(
+                        "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"
+                )
+        ).toString();
     }
 
     private void addEntryToFirebase(String temperature, String wind, String precipitation) {
@@ -319,10 +435,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // simply adds 10 random entries by calling addEntry 10 times
-    private void addEntriesBulk(){
-        for (int i = 0; i<10; i++){
-            int temp = ThreadLocalRandom.current().nextInt(-10, 40+1);
-            int wind = ThreadLocalRandom.current().nextInt(0, 100+1);
+    private void addEntriesBulk() {
+        for (int i = 0; i < 10; i++) {
+            int temp = ThreadLocalRandom.current().nextInt(-10, 40 + 1);
+            int wind = ThreadLocalRandom.current().nextInt(0, 100 + 1);
             int precipitation = ThreadLocalRandom.current().nextInt(0, 50);
 
             addEntryToFirebase(String.valueOf(temp), String.valueOf(wind), String.valueOf(precipitation));
@@ -361,14 +477,14 @@ public class MainActivity extends AppCompatActivity {
 
     // enables an async listener for changed on the database.
     // everytime there is an update on the database, it gets the new data and updates the GUI
-    private void fetchAllEntriesAsync(){
+    private void fetchAllEntriesAsync() {
         // this variable needs to be outside the function because it is needed in another.
         asyncListenerAll = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allEntries.clear();
 
-                for (DataSnapshot entrySnap : snapshot.getChildren()){
+                for (DataSnapshot entrySnap : snapshot.getChildren()) {
                     Entry en = entrySnap.getValue(Entry.class);
                     allEntries.add(en);
                 }
@@ -383,14 +499,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // disables asyncListener so new values are not automatically fetched
-    private void disableFetchAllEntriesAsync(){
-        if (databaseReference != null && asyncListenerAll != null){
+    private void disableFetchAllEntriesAsync() {
+        if (databaseReference != null && asyncListenerAll != null) {
             databaseReference.removeEventListener(asyncListenerAll);
         }
     }
 
-    private void disableFetchLastEntryAsync(){
-        if (databaseReference != null && asyncListenerAll != null){
+    private void disableFetchLastEntryAsync() {
+        if (databaseReference != null && asyncListenerAll != null) {
             databaseReference.removeEventListener(asyncListenerLast);
         }
     }
@@ -403,7 +519,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Entry en = new Entry();
 
-                for (DataSnapshot entrySnap : snapshot.getChildren()){
+                for (DataSnapshot entrySnap : snapshot.getChildren()) {
                     en = entrySnap.getValue(Entry.class);
                 }
                 multiLineResults.setText(String.valueOf(en));
@@ -417,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void fetchLastEntry(){
+    private void fetchLastEntry() {
         databaseReference.child(lastKey).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
