@@ -13,10 +13,11 @@
 BLEPeripheral                    blePeripheral                            = BLEPeripheral();
 
 // create service
-BLEService               ledService           = BLEService("19b10000e8f2537e4f6cd104768a1214");
+BLEService               ledService           = BLEService("ee910d6a61f948929f27c1b2fa7e1ebe");
 
 // create switch characteristic
-BLEIntCharacteristic    switchCharacteristic = BLEIntCharacteristic("19b10001e8f2537e4f6cd104768a1214", BLERead | BLENotify);
+BLEIntCharacteristic    switchCharacteristic = BLEIntCharacteristic("a89b4483df7f4539ab8ae6bfb4070640", BLERead | BLENotify);
+
 
 void setup() {
   Serial.begin(9600);
@@ -28,7 +29,7 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
 
   // set advertised local name and service UUID
-  blePeripheral.setLocalName("Formatge podrit");
+  blePeripheral.setLocalName("Senyora placa");
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
 
   // add service and characteristic

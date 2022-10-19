@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
     BleDevice nrf52;
 
     private static final int BLUETOOTH_CODE = 100;
-    private static final String SERVICE_UUID = "19b10000e8f2537e4f6cd104768a1214";
-    private static final String CHARACTERISTIC_UUID = "19b10001e8f2537e4f6cd104768a1214";
+    private static final String SERVICE_UUID = "ee910d6a61f948929f27c1b2fa7e1ebe";
+    private static final String CHARACTERISTIC_UUID = "a89b4483df7f4539ab8ae6bfb4070640";
     private boolean isNRF52Found = false;
     private boolean isNRF52Connected = false;
 
