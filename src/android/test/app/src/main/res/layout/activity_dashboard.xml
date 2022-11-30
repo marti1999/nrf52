@@ -39,15 +39,15 @@
                     android:layout_rowWeight="1"
                     app:elevation="6dp"
                     app:cardCornerRadius="12dp"
-                    android:layout_margin="12dp"
-                    >
+                    android:layout_margin="12dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:padding="16dp"
-                        android:orientation="vertical"
-                        android:background="@drawable/gradient_temp">
+                        android:orientation="vertical">
+                        <!--android:background="@drawable/gradient_temp"-->
+
                         <ImageView
                             android:layout_width="80dp"
                             android:layout_height="80dp"
@@ -96,8 +96,8 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:padding="16dp"
-                        android:orientation="vertical"
-                        android:background="@drawable/gradient_prec">
+                        android:orientation="vertical">
+                        <!--android:background="@drawable/gradient_prec"-->
                         <ImageView
                             android:layout_width="80dp"
                             android:layout_height="80dp"
@@ -133,10 +133,10 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/gradient_wind"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="16dp">
+                        <!--android:background="@drawable/gradient_wind"-->
 
                         <ImageView
                             android:layout_width="80dp"
@@ -176,10 +176,10 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/gradient_pred"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="16dp">
+                        <!--android:background="@drawable/gradient_pred"-->
 
                         <TextView
                             android:layout_width="wrap_content"

@@ -21,11 +21,7 @@ import org.w3c.dom.Text;
 import java.util.ArrayList;
 
 public class Dashboard extends AppCompatActivity {
-    private EditText textTemp, textWind, textPrec;
-    private TextView multiLineResults;
-    private Button btnSendEntry, btnSendBulk, btnCleanAllEntries, btnFetchLast, btnFetchAll, btnGetStats;
-    private ToggleButton toBtnAsync;
-
+    private TextView Results;
 
     // creating a variable for our Firebase Database.
     FirebaseDatabase firebaseDatabase;
@@ -36,7 +32,7 @@ public class Dashboard extends AppCompatActivity {
     // Variables used in the activity
     String lastKey = "";
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
-    ValueEventListener asyncListenerAll;
+    ValueEventListener asyncListenerAll,asyncListenerLast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +43,35 @@ public class Dashboard extends AppCompatActivity {
         firebaseDatabase = FirebaseDatabase.getInstance();
         // Creating a reference to our collection
         databaseReference = firebaseDatabase.getReference("Entries");
-        fetchAllEntriesAsync();
+        //Initializing and mapping GUI components
+        Results = findViewById(R.id.temp_value);
+        //fetchAllEntriesAsync();
+        fetchLastEntryAsync();
+    }
+
+    // fetches last entry by using the key previously saved.
+    private void fetchLastEntryAsync() {
+        // notice that child(lastKey) is called before get(). Now it only gets the element inside the list, instead of the whole list.
+        asyncListenerLast = databaseReference.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Entry en = new Entry();
+
+                for (DataSnapshot entrySnap : snapshot.getChildren()) {
+                    en = entrySnap.getValue(Entry.class);
+                }
+                Results.setText(en.toString());
+                TextView textView = (TextView) findViewById(R.id.temp_value);
+                textView.setText(String.valueOf(en));
+                Log.e("JÚLIA", en.toString());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
     }
 
     private void fetchAllEntriesAsync() {
@@ -61,9 +85,7 @@ public class Dashboard extends AppCompatActivity {
                     Entry en = entrySnap.getValue(Entry.class);
                     allEntries.add(en);
                 }
-                multiLineResults.setText(String.valueOf(allEntries));
-                TextView textView = (TextView) findViewById(R.id.temp_value);
-                textView.setText(String.valueOf(allEntries));
+                Results.setText(String.valueOf(allEntries));
             }
 
             @Override

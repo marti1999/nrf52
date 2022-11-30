@@ -122,8 +122,9 @@ public class MainActivity extends AppCompatActivity {
         btnGetStats.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), Dashboard.class);
-                startActivityForResult(intent, 0);
+                Intent intent = new Intent(MainActivity.this, Dashboard.class);
+                startActivity(intent);
+
             }
         });
         btnSendEntry.setOnClickListener(new View.OnClickListener() {
