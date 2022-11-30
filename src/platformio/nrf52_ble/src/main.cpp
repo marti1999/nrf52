@@ -49,13 +49,26 @@ void loop() {
     // central connected to peripheral
     Serial.print(F("Connected to central: "));
     Serial.println(central.address());
-    int i = 0;
+    int8_t temp = 0;
+    int8_t humidity = 32;
+    int8_t wind = 64;
+    int32_t data = 0;
 
     while (central.connected()) {
 
-      switchCharacteristic.setValue(i);
       delay(1000);
-      i++;
+      temp--;
+      humidity--;
+      wind--;
+
+      data = temp + (humidity << 8) + (wind << 16);
+
+      switchCharacteristic.setValue(data);
+      Serial.print(data);
+
+      
+      
+
 
       // // central still connected to peripheral
       // if (switchCharacteristic.written()) {

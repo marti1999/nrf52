@@ -384,8 +384,17 @@ public class MainActivity extends AppCompatActivity {
 //                int integer_little_endian = bbuf.getInt();
 
                 String little_endian = swapEndianString(big_endian);
-                multiLineResults.setText(little_endian);
+
+                String temperature = little_endian.substring(6, 8);
+                String humidity = little_endian.substring(4, 6);
+                String wind = little_endian.substring(2, 4);
+                String text = "temperature: " + temperature + "\nhumidity: " + humidity + "\nwind: " + wind;
+                multiLineResults.setText(text);
+
+
+
                 Log.d("BLE", "Received: " + big_endian);
+
             }
 
             @Override
