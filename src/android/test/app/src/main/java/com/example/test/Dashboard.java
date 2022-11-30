@@ -16,6 +16,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 
 public class Dashboard extends AppCompatActivity {
@@ -34,7 +36,7 @@ public class Dashboard extends AppCompatActivity {
     // Variables used in the activity
     String lastKey = "";
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
-    ValueEventListener asyncListener;
+    ValueEventListener asyncListenerAll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,18 +47,28 @@ public class Dashboard extends AppCompatActivity {
         firebaseDatabase = FirebaseDatabase.getInstance();
         // Creating a reference to our collection
         databaseReference = firebaseDatabase.getReference("Entries");
+        fetchAllEntriesAsync();
     }
 
-    private void fetchLastEntryAsync(){
-        databaseReference.limitToLast(1).addValueEventListener(new ValueEventListener() {
+    private void fetchAllEntriesAsync() {
+        // this variable needs to be outside the function because it is needed in another.
+        asyncListenerAll = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Entry entry = snapshot.getValue(Entry.class);
+                allEntries.clear();
+
+                for (DataSnapshot entrySnap : snapshot.getChildren()) {
+                    Entry en = entrySnap.getValue(Entry.class);
+                    allEntries.add(en);
+                }
+                multiLineResults.setText(String.valueOf(allEntries));
+                TextView textView = (TextView) findViewById(R.id.temp_value);
+                textView.setText(String.valueOf(allEntries));
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                Log.e("firebase", "Error getting data", error.toException().getCause());
             }
         });
     }
