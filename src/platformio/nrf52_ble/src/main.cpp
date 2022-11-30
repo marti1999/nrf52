@@ -18,6 +18,15 @@ BLEService               ledService           = BLEService("ee910d6a61f948929f27
 // create switch characteristic
 BLEIntCharacteristic    switchCharacteristic = BLEIntCharacteristic("a89b4483df7f4539ab8ae6bfb4070640", BLERead | BLENotify);
 
+int getRandomTemp(){
+  return (rand() % (40-0+1)) + 0;
+}
+int getRandomWind(){
+  return (rand() % (120-0+1)) + 0;
+}
+int getRandomPrecipitation(){
+  return (rand() % (20-0+1)) + 0;
+}
 
 void setup() {
   Serial.begin(9600);
@@ -57,9 +66,9 @@ void loop() {
     while (central.connected()) {
 
       delay(5000);
-      temp--;
-      humidity--;
-      wind--;
+      temp = getRandomTemp();
+      humidity = getRandomPrecipitation();
+      wind = getRandomWind();
 
       data = temp + (humidity << 8) + (wind << 16);
 
@@ -88,3 +97,4 @@ void loop() {
     Serial.println(central.address());
   }
 } 
+
