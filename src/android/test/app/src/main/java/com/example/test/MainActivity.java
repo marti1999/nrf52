@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattService;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -80,6 +81,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String CHARACTERISTIC_UUID = "a89b4483df7f4539ab8ae6bfb4070640";
     private boolean isNRF52Found = false;
     private boolean isNRF52Connected = false;
+
+    Handler handler = new Handler();
+    Runnable handler_runnable;
+    int handler_delay = 5000;
 
 
     @Override
@@ -224,7 +229,33 @@ public class MainActivity extends AppCompatActivity {
                 .setOperateTimeout(5000);
 
 
+
+
+
     }
+
+
+    @Override
+    protected void onResume(){
+        handler.postDelayed(handler_runnable = new Runnable() {
+            public void run() {
+//                Log.d("HANDLER", "handler executed");
+                if (isNRF52Connected){
+                    ble_read();
+                }
+                handler.postDelayed(this, handler_delay);
+            }
+        }, handler_delay);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        handler.removeCallbacks(handler_runnable); //stop handler when activity not visible super.onPause();
+        super.onPause();
+
+    }
+
 
     private void ble_checkpermission() {
         // https://developer.android.com/guide/topics/connectivity/bluetooth/permissions
@@ -342,11 +373,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT).show();
                     multiLineResults.setText("");
 
-                    // TODO mostrar per pantalla els serveis i característiques
-
-//                    List<BluetoothGattService> services = BleManager.getInstance().getBluetoothGattServices(nrf52);
-//                    services.
-
                 }
 
                 @Override
@@ -361,7 +387,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ble_read() {
-        Log.d("BLE", "BLE_read: ");
 
         if (!isNRF52Connected) {
             return;
@@ -375,23 +400,19 @@ public class MainActivity extends AppCompatActivity {
             public void onReadSuccess(byte[] data) {
 
                 String big_endian = HexUtil.formatHexString(data, false);
-
                 String little_endian = swapEndianString(big_endian);
-
                 String temperature = little_endian.substring(6, 8);
-                String humidity = little_endian.substring(4, 6);
+                String precipitation = little_endian.substring(4, 6);
                 String wind = little_endian.substring(2, 4);
 
                 byte temp_byte = data[0];
-                byte humidity_byte = data[1];
+                byte precipitation_byte = data[1];
                 byte wind_byte = data[2];
-
-                String text = "temperature: " + temp_byte + "\nhumidity: " + humidity_byte + "\nwind: " + wind_byte;
+                String text = "temperature: " + temp_byte + "\nprecipitation: " + precipitation_byte + "\nwind: " + wind_byte;
                 multiLineResults.setText(text);
-
-
-
                 Log.d("BLE", "Received: " + big_endian);
+
+                addEntryToFirebase(String.valueOf(temp_byte), String.valueOf(wind_byte), String.valueOf(precipitation_byte));
 
             }
 

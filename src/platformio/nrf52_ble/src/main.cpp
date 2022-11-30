@@ -56,7 +56,7 @@ void loop() {
 
     while (central.connected()) {
 
-      delay(1000);
+      delay(5000);
       temp--;
       humidity--;
       wind--;
