@@ -45,8 +45,8 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:padding="16dp"
-                        android:orientation="vertical">
-                        <!--android:background="@drawable/gradient_temp"-->
+                        android:orientation="vertical"
+                        android:background="@drawable/gradient_temp">
 
                         <ImageView
                             android:layout_width="80dp"
@@ -71,13 +71,6 @@
                             android:textColor="@color/black"
                             android:textSize="20sp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cº"
-                            android:fontFamily="sans-serif-condensed-medium"
-                            android:textSize="20sp"
-                            android:textColor="@color/black"/>
 
                     </LinearLayout>
 
@@ -96,8 +89,8 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:padding="16dp"
-                        android:orientation="vertical">
-                        <!--android:background="@drawable/gradient_prec"-->
+                        android:orientation="vertical"
+                        android:background="@drawable/gradient_prec">
                         <ImageView
                             android:layout_width="80dp"
                             android:layout_height="80dp"
@@ -111,12 +104,14 @@
                             android:textColor="@color/black"
                             android:textSize="18sp" />
                         <TextView
+                            android:id="@+id/precipitation_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="mL"
                             android:fontFamily="sans-serif-condensed-medium"
-                            android:textSize="20sp"
-                            android:textColor="@color/black"/>
+                            android:text=""
+                            android:textColor="@color/black"
+                            android:textSize="20sp" />
+
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
@@ -135,8 +130,8 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
-                        <!--android:background="@drawable/gradient_wind"-->
+                        android:padding="16dp"
+                        android:background="@drawable/gradient_wind">
 
                         <ImageView
                             android:layout_width="80dp"
@@ -152,12 +147,14 @@
                             android:textSize="18sp" />
 
                         <TextView
+                            android:id="@+id/wind_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-condensed-medium"
-                            android:text="km/h"
+                            android:text=""
                             android:textColor="@color/black"
                             android:textSize="20sp" />
+
 
                     </LinearLayout>
 
@@ -178,8 +175,8 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
-                        <!--android:background="@drawable/gradient_pred"-->
+                        android:padding="16dp"º
+                        android:background="@drawable/gradient_pred">
 
                         <TextView
                             android:layout_width="wrap_content"

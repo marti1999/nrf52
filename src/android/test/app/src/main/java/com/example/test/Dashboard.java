@@ -21,7 +21,7 @@ import org.w3c.dom.Text;
 import java.util.ArrayList;
 
 public class Dashboard extends AppCompatActivity {
-    private TextView Results;
+    private TextView ResultsTemp, ResultsPrec, ResultsWind;
 
     // creating a variable for our Firebase Database.
     FirebaseDatabase firebaseDatabase;
@@ -44,7 +44,10 @@ public class Dashboard extends AppCompatActivity {
         // Creating a reference to our collection
         databaseReference = firebaseDatabase.getReference("Entries");
         //Initializing and mapping GUI components
-        Results = findViewById(R.id.temp_value);
+        ResultsTemp = findViewById(R.id.temp_value);
+        ResultsPrec = findViewById(R.id.precipitation_value);
+        ResultsWind = findViewById(R.id.wind_value);
+
         //fetchAllEntriesAsync();
         fetchLastEntryAsync();
     }
@@ -60,9 +63,10 @@ public class Dashboard extends AppCompatActivity {
                 for (DataSnapshot entrySnap : snapshot.getChildren()) {
                     en = entrySnap.getValue(Entry.class);
                 }
-                Results.setText(en.toString());
-                TextView textView = (TextView) findViewById(R.id.temp_value);
-                textView.setText(String.valueOf(en));
+                ResultsTemp.setText(en.getTemperature() + " ºC");
+                ResultsPrec.setText(en.getPrecipitation() + " mL");
+                ResultsWind.setText(en.getWind() + " km/h");
+
                 Log.e("JÚLIA", en.toString());
             }
 
@@ -85,7 +89,7 @@ public class Dashboard extends AppCompatActivity {
                     Entry en = entrySnap.getValue(Entry.class);
                     allEntries.add(en);
                 }
-                Results.setText(String.valueOf(allEntries));
+                //Results.setText(String.valueOf(allEntries));
             }
 
             @Override
