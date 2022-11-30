@@ -373,22 +373,20 @@ public class MainActivity extends AppCompatActivity {
         BleManager.getInstance().read(nrf52, uuid_service, uuid_characteristic, new BleReadCallback() {
             @Override
             public void onReadSuccess(byte[] data) {
-//                ByteBuffer wrapped = ByteBuffer.wrap(data);
-//                int num = wrapped.getInt();
-                String big_endian = HexUtil.formatHexString(data, false);
 
-//                ByteBuffer bbuf = ByteBuffer.allocate(4);
-//                bbuf.order(ByteOrder.BIG_ENDIAN);
-//                bbuf.putInt(Integer.parseInt(num));
-//                bbuf.order(ByteOrder.LITTLE_ENDIAN);
-//                int integer_little_endian = bbuf.getInt();
+                String big_endian = HexUtil.formatHexString(data, false);
 
                 String little_endian = swapEndianString(big_endian);
 
                 String temperature = little_endian.substring(6, 8);
                 String humidity = little_endian.substring(4, 6);
                 String wind = little_endian.substring(2, 4);
-                String text = "temperature: " + temperature + "\nhumidity: " + humidity + "\nwind: " + wind;
+
+                byte temp_byte = data[0];
+                byte humidity_byte = data[1];
+                byte wind_byte = data[2];
+
+                String text = "temperature: " + temp_byte + "\nhumidity: " + humidity_byte + "\nwind: " + wind_byte;
                 multiLineResults.setText(text);
 
 
