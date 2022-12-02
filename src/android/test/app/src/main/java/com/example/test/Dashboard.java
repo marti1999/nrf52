@@ -19,10 +19,13 @@ import android.widget.ToggleButton;
 
 import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleGattCallback;
+import com.clj.fastble.callback.BleReadCallback;
 import com.clj.fastble.callback.BleScanCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
 import com.clj.fastble.scan.BleScanRuleConfig;
+import com.clj.fastble.utils.HexUtil;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -52,7 +55,7 @@ public class Dashboard extends AppCompatActivity {
     // Variables used in the activity
     String lastKey = "";
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
-    ValueEventListener asyncListenerAll,asyncListenerLast;
+    ValueEventListener asyncListenerAll, asyncListenerLast;
     BleDevice nrf52;
 
     @Override
@@ -101,6 +104,7 @@ public class Dashboard extends AppCompatActivity {
     // fetches last entry by using the key previously saved.
     private void fetchLastEntryAsync() {
         // notice that child(lastKey) is called before get(). Now it only gets the element inside the list, instead of the whole list.
+        // Alternatively it could be done by lastKey variable.
         asyncListenerLast = databaseReference.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -189,7 +193,6 @@ public class Dashboard extends AppCompatActivity {
     }
 
     private void ble_setScanRule() {
-        // TODO fer que es connecti automàticament.
         BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
                 .setServiceUuids(null)
                 .setDeviceName(true, null)
@@ -279,6 +282,44 @@ public class Dashboard extends AppCompatActivity {
         }
     }
 
+    private void ble_read() {
+
+        if (!isNRF52Connected) {
+            return;
+        }
+
+        String uuid_service = formatAsUUID(SERVICE_UUID);
+        String uuid_characteristic = formatAsUUID(CHARACTERISTIC_UUID);
+
+        BleManager.getInstance().read(nrf52, uuid_service, uuid_characteristic, new BleReadCallback() {
+            @Override
+            public void onReadSuccess(byte[] data) {
+
+                String big_endian = HexUtil.formatHexString(data, false);
+                String little_endian = swapEndianString(big_endian);
+                String temperature = little_endian.substring(6, 8);
+                String precipitation = little_endian.substring(4, 6);
+                String wind = little_endian.substring(2, 4);
+
+                byte temp_byte = data[0];
+                byte precipitation_byte = data[1];
+                byte wind_byte = data[2];
+                String text = "temperature: " + temp_byte + "\nprecipitation: " + precipitation_byte + "\nwind: " + wind_byte;
+                //multiLineResults.setText(text);
+                Log.d("BLE", "Received: " + big_endian);
+
+                addEntryToFirebase(String.valueOf(temp_byte), String.valueOf(wind_byte), String.valueOf(precipitation_byte));
+
+            }
+
+            @Override
+            public void onReadFailure(BleException exception) {
+                Log.d("BLE", "error read: " + exception.getDescription());
+            }
+        });
+
+    }
+
     private String formatAsUUID(String raw) {
         return java.util.UUID.fromString(
                 raw.replaceFirst(
@@ -296,5 +337,25 @@ public class Dashboard extends AppCompatActivity {
         return sb.toString();
     }
 
+    private void addEntryToFirebase(String temperature, String wind, String precipitation) {
+        Entry entry = new Entry();
+        entry.setTemperature(temperature);
+        entry.setWind(wind);
+        entry.setPrecipitation(precipitation);
 
+        // NOW IT IS PUTTING A NEW ENTRY WITH AN AUTOMATIC KEY https://firebase.google.com/docs/database/android/lists-of-data#append_to_a_list_of_data
+        // push() is creating a random key, so there's no need to call child(myKey)
+        // if the random key needs to be accessed, the reference returned by push must be kept in a variable
+        DatabaseReference pushedRef = databaseReference.push();
+
+        pushedRef.setValue(entry).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                //clearTextBoxes();
+                lastKey = pushedRef.getKey();
+            }
+        });
+
+
+    }
 }
