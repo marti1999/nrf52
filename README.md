@@ -9,3 +9,9 @@ The app, using the Android Bluetooth library, read the data and shows it on the 
 
 Additionally, all the data is later sent to the cloud (Google Firestore).
 <img src="./img/cloud.png" alt="cloud control panel" width="600"/>
+
+Source files may be found on:
+```bash
+src/platformio/nrf52_ble/src
+src/android/test/app/src/main/java/com/example/test
+```
