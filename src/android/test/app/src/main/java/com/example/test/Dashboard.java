@@ -65,6 +65,8 @@ public class Dashboard extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        disableFetchAllEntriesAsync();
+        disableFetchLastEntryAsync();
         super.onDestroy();
         if (BleManager.getInstance().isConnected(nrf52)) {
             BleManager.getInstance().disconnect(nrf52);
@@ -108,6 +110,7 @@ public class Dashboard extends AppCompatActivity {
 
     @Override
     protected void onResume(){
+        fetchLastEntryAsync();
         handler.postDelayed(handler_runnable = new Runnable() {
             public void run() {
 //                Log.d("HANDLER", "handler executed");
@@ -122,6 +125,7 @@ public class Dashboard extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        disableFetchLastEntryAsync();
         handler.removeCallbacks(handler_runnable); //stop handler when activity not visible super.onPause();
         super.onPause();
 
@@ -381,7 +385,18 @@ public class Dashboard extends AppCompatActivity {
                 lastKey = pushedRef.getKey();
             }
         });
+    }
 
+    // disables asyncListener so new values are not automatically fetched
+    private void disableFetchAllEntriesAsync() {
+        if (databaseReference != null && asyncListenerAll != null) {
+            databaseReference.removeEventListener(asyncListenerAll);
+        }
+    }
 
+    private void disableFetchLastEntryAsync() {
+        if (databaseReference != null && asyncListenerAll != null) {
+            databaseReference.removeEventListener(asyncListenerLast);
+        }
     }
 }
