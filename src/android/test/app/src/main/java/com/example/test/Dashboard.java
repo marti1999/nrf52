@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -58,6 +59,10 @@ public class Dashboard extends AppCompatActivity {
     ValueEventListener asyncListenerAll, asyncListenerLast;
     BleDevice nrf52;
 
+    Handler handler = new Handler();
+    Runnable handler_runnable;
+    int handler_delay = 5000;
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -99,6 +104,27 @@ public class Dashboard extends AppCompatActivity {
         });
 
         fetchLastEntryAsync();
+    }
+
+    @Override
+    protected void onResume(){
+        handler.postDelayed(handler_runnable = new Runnable() {
+            public void run() {
+//                Log.d("HANDLER", "handler executed");
+                if (isNRF52Connected){
+                    ble_read();
+                }
+                handler.postDelayed(this, handler_delay);
+            }
+        }, handler_delay);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        handler.removeCallbacks(handler_runnable); //stop handler when activity not visible super.onPause();
+        super.onPause();
+
     }
 
     // fetches last entry by using the key previously saved.
