@@ -48,11 +48,12 @@ public class Dashboard extends AppCompatActivity {
     FirebaseDatabase firebaseDatabase;
     // creating a variable for our Database reference for Firebase.
     DatabaseReference databaseReference;
+    DatabaseReference databaseReferencePred;
 
     // Variables used in the activity
     String lastKey = "";
     ArrayList<Entry> allEntries = new ArrayList<Entry>();
-    ValueEventListener asyncListenerAll, asyncListenerLast;
+    ValueEventListener asyncListenerAll, asyncListenerLast, asyncListenerPredLast;
     BleDevice nrf52;
 
     // handler used for BLE connection
@@ -65,6 +66,7 @@ public class Dashboard extends AppCompatActivity {
     protected void onDestroy() {
         disableFetchAllEntriesAsync();
         disableFetchLastEntryAsync();
+        disableFetchLastPredAsync();
         super.onDestroy();
         if (BleManager.getInstance().isConnected(nrf52)) {
             BleManager.getInstance().disconnect(nrf52);
@@ -83,6 +85,7 @@ public class Dashboard extends AppCompatActivity {
         firebaseDatabase = FirebaseDatabase.getInstance();
         // Creating a reference to our collection
         databaseReference = firebaseDatabase.getReference("Entries");
+        databaseReferencePred = firebaseDatabase.getReference("Predictions");
 
         //Initializing and mapping GUI components
         ResultsTemp = findViewById(R.id.temp_value);
@@ -107,12 +110,14 @@ public class Dashboard extends AppCompatActivity {
         });
 
         fetchLastEntryAsync();
+        fetchLastPredictionAsync();
     }
 
     // restarting everything that has been paused
     @Override
     protected void onResume(){
         fetchLastEntryAsync();
+        fetchLastPredictionAsync();
         handler.postDelayed(handler_runnable = new Runnable() {
             public void run() {
                 // Log.d("HANDLER", "handler executed");
@@ -129,6 +134,7 @@ public class Dashboard extends AppCompatActivity {
     @Override
     protected void onPause() {
         disableFetchLastEntryAsync();
+        disableFetchLastPredAsync();
         handler.removeCallbacks(handler_runnable); //stop handler when activity not visible super.onPause();
         super.onPause();
 
@@ -149,7 +155,28 @@ public class Dashboard extends AppCompatActivity {
                 ResultsPrec.setText(en.getPrecipitation() + " mL");
                 ResultsWind.setText(en.getWind() + " km/h");
 
-                // Log.e("JÚLIA", en.toString());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FIREBASE", "Error getting data", error.toException().getCause());
+            }
+        });
+    }
+
+    // fetches last entry asynchronous, listener executed whenever there are changes on the DB
+    private void fetchLastPredictionAsync() {
+        // asyncListenerLast variable needs to be outside the inner function because it is needed somewhere else.
+        asyncListenerPredLast = databaseReferencePred.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Entry en = new Entry();
+
+                for (DataSnapshot entrySnap : snapshot.getChildren()) {
+                    en = entrySnap.getValue(Entry.class);
+                }
+                // TODO faltaria guardar els valors que rep i mostrar-los per pantalla
+
             }
 
             @Override
@@ -395,6 +422,12 @@ public class Dashboard extends AppCompatActivity {
     private void disableFetchLastEntryAsync() {
         if (databaseReference != null && asyncListenerAll != null) {
             databaseReference.removeEventListener(asyncListenerLast);
+        }
+    }
+
+    private void disableFetchLastPredAsync() {
+        if (databaseReferencePred != null && asyncListenerPredLast != null) {
+            databaseReferencePred.removeEventListener(asyncListenerPredLast);
         }
     }
 }
