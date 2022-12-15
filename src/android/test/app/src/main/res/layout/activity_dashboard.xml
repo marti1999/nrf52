@@ -30,11 +30,12 @@
                 android:alignmentMode="alignMargins"
                 android:columnCount="2"
                 android:rowCount="5"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_width="1050px"
+                android:layout_height="wrap_content"
+                android:padding="5dp">
 
                 <androidx.cardview.widget.CardView
-                    android:layout_width="125dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
@@ -117,22 +118,22 @@
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
-                    android:layout_width="148dp"
+                    android:layout_width="309dp"
                     android:layout_height="wrap_content"
                     android:layout_rowWeight="1"
+                    android:layout_columnSpan="2"
                     android:layout_columnWeight="1"
                     android:layout_margin="12dp"
                     app:cardCornerRadius="12dp"
-                    app:elevation="6dp"
-                    android:layout_columnSpan="2">
+                    app:elevation="6dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:background="@drawable/gradient_wind"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp"
-                        android:background="@drawable/gradient_wind">
+                        android:padding="16dp">
 
                         <ImageView
                             android:layout_width="80dp"
@@ -183,7 +184,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-condensed-medium"
-                            android:text="PREDICTIONS:"
+                            android:text="PREDICTION"
                             android:textColor="@color/black"
                             android:textSize="30sp" />
 
@@ -192,20 +193,6 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-condensed-medium"
                             android:text="Temperature:"
-                            android:textColor="@color/black"
-                            android:textSize="20sp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-condensed-medium"
-                            android:text="Precipitation:"
-                            android:textColor="@color/black"
-                            android:textSize="20sp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-condensed-medium"
-                            android:text="Wind:"
                             android:textColor="@color/black"
                             android:textSize="20sp" />
 
