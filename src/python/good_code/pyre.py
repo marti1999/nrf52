@@ -1,5 +1,4 @@
 import pyrebase
-import time
 import joblib
 import numpy as np
 
@@ -36,14 +35,16 @@ not_first_try = False
 
 
 
-def process(dictionary):
+def process(dictionary, pathname):
     
-    name = list(dictionary.keys())[0]
-    p = dictionary[str(name)]["precipitation"]
-    w = dictionary[str(name)]["wind"]
+    name = pathname[1:]
+    #p = dictionary[str(name)]["precipitation"]
+    #w = dictionary[str(name)]["wind"]
+    p = dictionary["precipitation"]
+    w = dictionary["wind"]
     darray = np.array([p,w])
     res = model_clone.predict(darray.reshape(1,-1))
-    new_data = {str(name) : str(res[0])}
+    new_data = {str(name) : str(int(res[0]))}
     db.child('Predictions').set(new_data, token_id)
 
 
@@ -53,13 +54,12 @@ def stream_handler(message):
     
     if (type(message["data"]) == dict):
         if (not_first_try):
-            process(message["data"])
+            process(message["data"], str(message["path"]))
         else:
             not_first_try = True
 
 
 
 my_stream = db.child("Entries").stream(stream_handler)
-
 
 
