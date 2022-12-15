@@ -2,15 +2,15 @@ package com.example.test;
 
 public class Entry {
     // string variable for
-    // storing employee name.
+    // storing temperature.
     private String temperature;
 
     // string variable for storing
-    // employee contact number
+    // wind.
     private String wind;
 
     // string variable for storing
-    // employee address.
+    // precipitation.
     private String precipitation;
 
     // an empty constructor is

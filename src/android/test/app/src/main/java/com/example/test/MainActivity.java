@@ -229,10 +229,8 @@ public class MainActivity extends AppCompatActivity {
                 .setConnectOverTime(20000)
                 .setOperateTimeout(5000);
 
-
-
-
-
+        Intent intent = new Intent(MainActivity.this, Dashboard.class);
+        startActivity(intent);
     }
 
 
