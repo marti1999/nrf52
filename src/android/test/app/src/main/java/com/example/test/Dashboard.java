@@ -153,7 +153,7 @@ public class Dashboard extends AppCompatActivity {
                     en = entrySnap.getValue(Entry.class);
                 }
                 ResultsTemp.setText(en.getTemperature() + " ºC");
-                ResultsPrec.setText(en.getPrecipitation() + " mL");
+                ResultsPrec.setText(en.getPrecipitation() + " %");
                 ResultsWind.setText(en.getWind() + " km/h");
 
             }
