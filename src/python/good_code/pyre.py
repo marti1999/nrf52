@@ -3,6 +3,9 @@ import time
 import joblib
 import numpy as np
 
+
+
+
 model_clone = joblib.load('temperature_regr.pkl')
 
 config = {
@@ -29,29 +32,30 @@ auth_token
 token_id = auth_token['idToken']
 token_id
 
+not_first_try = False
 
 
-def predict(darray):
-    return model_clone.predict(darray.reshape(1,-1))
 
-
-def process(dictionary, path):
-    print(dictionary)
-    p = dictionary["precipitation"]
-    w = dictionary["wind"]
-    print(p)
-    print(w)
-    darray = np.array([p,w])
+def process(dictionary):
     
-    res = predict(darray)
-    name = path[1:]
-    new_data = {'temperature' : str(res[0])}
-    db.child('Predictions').child(str(name)).set(new_data, token_id)
+    name = list(dictionary.keys())[0]
+    p = dictionary[str(name)]["precipitation"]
+    w = dictionary[str(name)]["wind"]
+    darray = np.array([p,w])
+    res = model_clone.predict(darray.reshape(1,-1))
+    new_data = {str(name) : str(res[0])}
+    db.child('Predictions').set(new_data, token_id)
+
 
 def stream_handler(message):
+    global not_first_try
     print("Event: " + str(message["event"]) + "    Path: " + str(message["path"]) + "    Data: " + str(message["data"]))
+    
     if (type(message["data"]) == dict):
-        process(message["data"], str(message["path"]))
+        if (not_first_try):
+            process(message["data"])
+        else:
+            not_first_try = True
 
 
 
@@ -59,9 +63,3 @@ my_stream = db.child("Entries").stream(stream_handler)
 
 
 
-my_stream.close()
-my_stream.close()
-my_stream.close()
-my_stream.close()
-my_stream.close()
-my_stream.close()
