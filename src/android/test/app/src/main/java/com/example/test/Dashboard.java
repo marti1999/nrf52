@@ -35,7 +35,7 @@ import java.util.List;
 public class Dashboard extends AppCompatActivity {
 
     // Activity layout components
-    private TextView ResultsTemp, ResultsPrec, ResultsWind;
+    private TextView ResultsTemp, ResultsPrec, ResultsWind, Prediction;
     private TextView LineResults;
     private Button btnScan, btnConnect;
     private static final int BLUETOOTH_CODE = 100;
@@ -91,6 +91,7 @@ public class Dashboard extends AppCompatActivity {
         ResultsTemp = findViewById(R.id.temp_value);
         ResultsPrec = findViewById(R.id.precipitation_value);
         ResultsWind = findViewById(R.id.wind_value);
+        Prediction = findViewById(R.id.Prediction);
         btnScan = findViewById(R.id.idBtnScan);
         btnConnect = findViewById(R.id.idBtnConnect);
         LineResults = findViewById(R.id.ScanResult);
@@ -170,12 +171,12 @@ public class Dashboard extends AppCompatActivity {
         asyncListenerPredLast = databaseReferencePred.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Entry en = new Entry();
 
-                for (DataSnapshot entrySnap : snapshot.getChildren()) {
-                    en = entrySnap.getValue(Entry.class);
-                }
                 // TODO faltaria guardar els valors que rep i mostrar-los per pantalla
+                for (DataSnapshot predictionSnap : snapshot.getChildren()) {
+                    String prediction = predictionSnap.getValue(String.class);
+                    Prediction.setText("Temperature: " + prediction + " ºC");
+                }
 
             }
 
